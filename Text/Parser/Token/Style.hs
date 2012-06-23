@@ -34,6 +34,7 @@ import Data.Monoid
 import Text.Parser.Combinators
 import Text.Parser.Char
 import Text.Parser.Token
+import Text.Parser.Token.Highlight
 import Data.List (nub)
 
 data CommentStyle = CommentStyle
@@ -84,6 +85,8 @@ emptyOps = IdentifierStyle
   , styleStart    = styleLetter emptyOps
   , styleLetter   = oneOf ":!#$%&*+./<=>?@\\^|-~"
   , styleReserved = mempty
+  , styleHighlight = Operator
+  , styleReservedHighlight = ReservedOperator
   }
 haskell98Ops = emptyOps
   { styleReserved = set ["::","..","=","\\","|","<-","->","@","~","=>"]
@@ -96,6 +99,8 @@ emptyIdents = IdentifierStyle
   , styleStart    = letter <|> char '_'
   , styleLetter   = alphaNum <|> oneOf "_'"
   , styleReserved = set []
+  , styleHighlight = Identifier
+  , styleReservedHighlight = ReservedIdentifier
   }
 
 haskell98Idents = emptyIdents

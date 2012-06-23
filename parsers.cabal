@@ -1,6 +1,6 @@
 name:          parsers
 category:      Text, Parsing
-version:       0.1
+version:       0.2
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -28,6 +28,7 @@ library
     Text.Parser.Expression
     Text.Parser.Token
     Text.Parser.Token.Style
+    Text.Parser.Token.Highlight
 
   ghc-options: -Wall
 

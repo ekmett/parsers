@@ -59,7 +59,6 @@ import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
 import Data.Monoid
 
-
 -- | @choice ps@ tries to apply the parsers in the list @ps@ in order,
 -- until one of them succeeds. Returns the value of the succeeding
 -- parser.
@@ -315,4 +314,3 @@ instance Parsing m => Parsing (IdentityT m) where
   lookAhead = IdentityT . lookAhead . runIdentityT
   unexpected = lift . unexpected
   eof = lift eof
-

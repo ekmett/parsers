@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP, UndecidableInstances, FlexibleInstances, FlexibleContexts #-}
 {-# OPTIONS_GHC -fspec-constr -fspec-constr-count=8 #-}
 -----------------------------------------------------------------------------
 -- |

@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, UndecidableInstances, FlexibleInstances, FlexibleContexts #-}
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fspec-constr -fspec-constr-count=8 #-}
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704

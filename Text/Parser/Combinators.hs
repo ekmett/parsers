@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, UndecidableInstances, FlexibleInstances, FlexibleContexts #-}
+{-# LANGUAGE CPP #-}
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 #define USE_DEFAULT_SIGNATURES
@@ -29,7 +29,6 @@ module Text.Parser.Combinators
   , optional -- from Control.Applicative, parsec optionMaybe
   , skipOptional -- parsec optional
   , between
-  , skipSome -- parsec skipMany1
   , some     -- from Control.Applicative, parsec many1
   , many     -- from Control.Applicative
   , sepBy

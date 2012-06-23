@@ -4,7 +4,7 @@ parsers
 Goals
 -----
 
-This library provides convenient combinators for working with building parsing combinator libraries.
+This library provides convenient combinators for working with and building parsing combinator libraries.
 
 Given a few simple instances, you get access to a large number of canned definitions.
 

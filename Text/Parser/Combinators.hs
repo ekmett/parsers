@@ -22,9 +22,9 @@
 --
 -----------------------------------------------------------------------------
 module Text.Parser.Combinators
-  ( Parsing(..)
-  -- * Alternative Parser combinators
-  , choice
+  (
+  -- * Parsing Combinators
+    choice
   , option
   , optional -- from Control.Applicative, parsec optionMaybe
   , skipOptional -- parsec optional
@@ -43,6 +43,8 @@ module Text.Parser.Combinators
   , chainl1
   , chainr1
   , manyTill
+  -- * Parsing Class
+  , Parsing(..)
   ) where
 
 import Data.Traversable (sequenceA)

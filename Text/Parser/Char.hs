@@ -22,9 +22,9 @@
 --
 -----------------------------------------------------------------------------
 module Text.Parser.Char
-  ( CharParsing(..)
-  -- * Character parsers
-  , oneOf       -- :: CharParsing m => [Char] -> m Char
+  (
+  -- * Combinators
+    oneOf       -- :: CharParsing m => [Char] -> m Char
   , noneOf      -- :: CharParsing m => [Char] -> m Char
   , oneOfSet    -- :: CharParsing m => CharSet -> m Char
   , noneOfSet   -- :: CharParsing m => CharSet -> m Char
@@ -39,6 +39,8 @@ module Text.Parser.Char
   , digit       -- :: CharParsing m => m Char
   , hexDigit    -- :: CharParsing m => m Char
   , octDigit    -- :: CharParsing m => m Char
+  -- * Class
+  , CharParsing(..)
   ) where
 
 import Control.Applicative

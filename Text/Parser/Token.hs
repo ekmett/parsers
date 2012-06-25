@@ -19,9 +19,9 @@
 --
 -----------------------------------------------------------------------------
 module Text.Parser.Token
-  ( TokenParsing(..)
+  (
   -- * Token Parsing
-  , whiteSpace      -- :: TokenParsing m => m ()
+    whiteSpace      -- :: TokenParsing m => m ()
   , token           -- :: TokenParsing m => m a -> m a
   , charLiteral     -- :: TokenParsing m => m Char
   , stringLiteral   -- :: TokenParsing m => m String
@@ -42,21 +42,23 @@ module Text.Parser.Token
   , semiSep1        -- :: TokenParsing m => m a -> m [a]
   , commaSep        -- :: TokenParsing m => m a -> m [a]
   , commaSep1       -- :: TokenParsing m => m a -> m [a]
+  -- ** Token Parsing Class
+  , TokenParsing(..)
   -- ** Token Parsing Transformers
   , Unspaced(..)
   , Unhighlighted(..)
+  -- ** /Non-Token/ Parsers
+  , decimal       -- :: TokenParsing m => m Integer
+  , hexadecimal   -- :: TokenParsing m => m Integer
+  , octal         -- :: TokenParsing m => m Integer
+  , characterChar -- :: TokenParsing m => m Char
+  , integer'      -- :: TokenParsing m => m Integer
   -- * Identifiers
   , IdentifierStyle(..)
   , liftIdentifierStyle -- :: (MonadTrans t, Monad m) =>
                         --    IdentifierStyle m -> IdentifierStyle (t m)
   , ident           -- :: TokenParsing m => IdentifierStyle m -> m String
   , reserve         -- :: TokenParsing m => IdentifierStyle m -> String -> m ()
-  -- * Highlighted /non-token/ parsers
-  , decimal       -- :: TokenParsing m => m Integer
-  , hexadecimal   -- :: TokenParsing m => m Integer
-  , octal         -- :: TokenParsing m => m Integer
-  , characterChar -- :: TokenParsing m => m Char
-  , integer'      -- :: TokenParsing m => m Integer
   ) where
 
 import Control.Applicative
@@ -79,7 +81,7 @@ import Text.Parser.Char
 import Text.Parser.Combinators
 import Text.Parser.Token.Highlight
 
--- | Skip zero or more bytes worth of white space. More complex parsers are‗
+-- | Skip zero or more bytes worth of white space. More complex parsers are
 -- free to consider comments as white space.
 whiteSpace :: TokenParsing m => m ()
 whiteSpace = someSpace <|> return ()
@@ -378,7 +380,14 @@ ident s = token $ try $ do
 
 -- * Utilities
 
-characterChar, charEscape, charLetter :: TokenParsing m => m Char
+
+-- | This parser parses a character literal without the surrounding quotation marks.
+--
+-- This parser does NOT swallow trailing whitespace
+
+characterChar :: TokenParsing m => m Char
+
+charEscape, charLetter :: TokenParsing m => m Char
 characterChar = charLetter <|> charEscape <?> "literal character"
 {-# INLINE characterChar #-}
 
@@ -503,6 +512,8 @@ fractFloat n = Right <$> fractExponent n
 
 -- | Parses a positive whole number in the decimal system. Returns the
 -- value of the number.
+--
+-- This parser does NOT swallow trailing whitespace
 
 decimal :: TokenParsing m => m Integer
 decimal = number 10 digit
@@ -511,6 +522,8 @@ decimal = number 10 digit
 -- | Parses a positive whole number in the hexadecimal system. The number
 -- should be prefixed with \"x\" or \"X\". Returns the value of the
 -- number.
+--
+-- This parser does NOT swallow trailing whitespace
 
 hexadecimal :: TokenParsing m => m Integer
 hexadecimal = oneOf "xX" *> number 16 hexDigit
@@ -519,6 +532,8 @@ hexadecimal = oneOf "xX" *> number 16 hexDigit
 -- | Parses a positive whole number in the octal system. The number
 -- should be prefixed with \"o\" or \"O\". Returns the value of the
 -- number.
+--
+-- This parser does NOT swallow trailing whitespace
 
 octal :: TokenParsing m => m Integer
 octal = oneOf "oO" *> number 8 octDigit

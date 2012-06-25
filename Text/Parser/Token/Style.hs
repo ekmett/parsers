@@ -21,9 +21,9 @@ module Text.Parser.Token.Style
   , javaCommentStyle
   , haskellCommentStyle
   , buildSomeSpaceParser
-  -- * identifier styles
+  -- * Identifier Styles
   , emptyIdents, haskellIdents, haskell98Idents
-  -- * operator styles
+  -- * Operator Styles
   , emptyOps, haskellOps, haskell98Ops
   ) where
 

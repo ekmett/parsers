@@ -141,7 +141,7 @@ stringLiteral = token (highlight StringLiteral lit) where
 -- specified in 'decimal', 'hexadecimal' or
 -- 'octal'. The number is parsed according to the grammar
 -- rules in the Haskell report.
-natural :: (TokenParsing m, Monad m) => m Integer
+natural :: TokenParsing m => m Integer
 natural = token natural'
 {-# INLINE natural #-}
 
@@ -151,7 +151,7 @@ natural = token natural'
 -- number can be specified in 'decimal', 'hexadecimal'
 -- or 'octal'. The number is parsed according
 -- to the grammar rules in the Haskell report.
-integer :: (TokenParsing m, Monad m) => m Integer
+integer :: TokenParsing m => m Integer
 integer = token (token (highlight Operator sgn <*> natural')) <?> "integer"
   where
   sgn = negate <$ char '-'
@@ -162,7 +162,7 @@ integer = token (token (highlight Operator sgn <*> natural')) <?> "integer"
 -- | This token parser parses a floating point value. Returns the value
 -- of the number. The number is parsed according to the grammar rules
 -- defined in the Haskell report.
-double :: (TokenParsing m, Monad m) => m Double
+double :: TokenParsing m => m Double
 double = token (highlight Number floating <?> "double")
 {-# INLINE double #-}
 
@@ -170,7 +170,7 @@ double = token (highlight Number floating <?> "double")
 -- Returns the value of the number. This parsers deals with
 -- any overlap in the grammar rules for naturals and floats. The number
 -- is parsed according to the grammar rules defined in the Haskell report.
-naturalOrDouble :: (TokenParsing m, Monad m) => m (Either Integer Double)
+naturalOrDouble :: TokenParsing m => m (Either Integer Double)
 naturalOrDouble = token (highlight Number natDouble <?> "number")
 {-# INLINE naturalOrDouble #-}
 
@@ -421,7 +421,7 @@ escapeCode = (charEsc <|> charNum <|> charAscii <|> charControl) <?> "escape cod
 -- rules in the Haskell report.
 --
 -- This parser does NOT swallow trailing whitespace.
-natural' :: (TokenParsing m, Monad m) => m Integer
+natural' :: TokenParsing m => m Integer
 natural' = highlight Number nat <?> "natural"
 
 number :: TokenParsing m => Integer -> m Char -> m Integer
@@ -440,7 +440,7 @@ number base baseDigit =
 -- Also, unlike the 'integer' parser, this parser does not admit spaces
 -- between the sign and the number.
 
-integer' :: (TokenParsing m, Monad m) => m Integer
+integer' :: TokenParsing m => m Integer
 integer' = int <?> "integer"
 {-# INLINE integer' #-}
 
@@ -450,19 +450,19 @@ sign = highlight Operator
    <|> id <$ char '+'
    <|> pure id
 
-int :: (TokenParsing m, Monad m) => m Integer
+int :: TokenParsing m => m Integer
 int = {-token-} sign <*> highlight Number nat
-nat, zeroNumber :: (TokenParsing m, Monad m) => m Integer
+nat, zeroNumber :: TokenParsing m => m Integer
 nat = zeroNumber <|> decimal
-zeroNumber = char '0' *> (hexadecimal <|> octal <|> decimal <|> return 0) <?> ""
+zeroNumber = char '0' *> (hexadecimal <|> octal <|> decimal <|> pure 0) <?> ""
 
-floating :: (TokenParsing m, Monad m) => m Double
-floating = decimal >>= fractExponent
+floating :: TokenParsing m => m Double
+floating = decimal <**> fractExponent
 {-# INLINE floating #-}
 
-fractExponent :: TokenParsing m => Integer -> m Double
-fractExponent n = (\fract expo -> (fromInteger n + fract) * expo) <$> fraction <*> option 1.0 exponent'
-              <|> (fromInteger n *) <$> exponent' where
+fractExponent :: TokenParsing m => m (Integer -> Double)
+fractExponent = (\fract expo n -> (fromInteger n + fract) * expo) <$> fraction <*> option 1.0 exponent'
+            <|> (\expo n -> fromInteger n * expo) <$> exponent' where
   fraction = Prelude.foldr op 0.0 <$> (char '.' *> (some digit <?> "fraction"))
   op d f = (f + fromIntegral (digitToInt d))/10.0
   exponent' = ((\f e -> power (f e)) <$ oneOf "eE" <*> sign <*> (decimal <?> "exponent")) <?> "exponent"
@@ -470,21 +470,19 @@ fractExponent n = (\fract expo -> (fromInteger n + fract) * expo) <$> fraction <
     | e < 0     = 1.0/power(-e)
     | otherwise = fromInteger (10^e)
 
-natDouble, zeroNumFloat, decimalFloat :: (TokenParsing m, Monad m) => m (Either Integer Double)
+natDouble, zeroNumFloat, decimalFloat :: TokenParsing m => m (Either Integer Double)
 natDouble
     = char '0' *> zeroNumFloat
   <|> decimalFloat
 zeroNumFloat
     = Left <$> (hexadecimal <|> octal)
   <|> decimalFloat
-  <|> fractFloat 0
-  <|> return (Left 0)
-decimalFloat = do
-  n <- decimal
-  option (Left n) (fractFloat n)
+  <|> pure 0 <**> fractFloat
+  <|> pure (Left 0)
+decimalFloat = decimal <**> option Left fractFloat
 
-fractFloat :: TokenParsing m => Integer -> m (Either Integer Double)
-fractFloat n = Right <$> fractExponent n
+fractFloat :: TokenParsing m => m (Integer -> Either Integer Double)
+fractFloat = (Right .) <$> fractExponent
 {-# INLINE fractFloat #-}
 
 -- | Parses a positive whole number in the decimal system. Returns the

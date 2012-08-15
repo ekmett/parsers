@@ -118,7 +118,6 @@ charLiteral = token (highlight CharLiteral lit) where
 -- gaps. The literal string is parsed according to the grammar rules
 -- defined in the Haskell report (which matches most programming
 -- languages quite closely).
-
 stringLiteral :: TokenParsing m => m String
 stringLiteral = token (highlight StringLiteral lit) where
   lit = Prelude.foldr (maybe id (:)) ""
@@ -142,7 +141,6 @@ stringLiteral = token (highlight StringLiteral lit) where
 -- specified in 'decimal', 'hexadecimal' or
 -- 'octal'. The number is parsed according to the grammar
 -- rules in the Haskell report.
-
 natural :: (TokenParsing m, Monad m) => m Integer
 natural = token natural'
 {-# INLINE natural #-}
@@ -153,7 +151,6 @@ natural = token natural'
 -- number can be specified in 'decimal', 'hexadecimal'
 -- or 'octal'. The number is parsed according
 -- to the grammar rules in the Haskell report.
-
 integer :: (TokenParsing m, Monad m) => m Integer
 integer = token (token (highlight Operator sgn <*> natural')) <?> "integer"
   where
@@ -165,7 +162,6 @@ integer = token (token (highlight Operator sgn <*> natural')) <?> "integer"
 -- | This token parser parses a floating point value. Returns the value
 -- of the number. The number is parsed according to the grammar rules
 -- defined in the Haskell report.
-
 double :: (TokenParsing m, Monad m) => m Double
 double = token (highlight Number floating <?> "double")
 {-# INLINE double #-}
@@ -174,85 +170,72 @@ double = token (highlight Number floating <?> "double")
 -- Returns the value of the number. This parsers deals with
 -- any overlap in the grammar rules for naturals and floats. The number
 -- is parsed according to the grammar rules defined in the Haskell report.
-
 naturalOrDouble :: (TokenParsing m, Monad m) => m (Either Integer Double)
 naturalOrDouble = token (highlight Number natDouble <?> "number")
 {-# INLINE naturalOrDouble #-}
 
 -- | Token parser @symbol s@ parses 'string' @s@ and skips
 -- trailing white space.
-
 symbol :: TokenParsing m => String -> m String
 symbol name = token (highlight Symbol (string name))
 {-# INLINE symbol #-}
 
 -- | Token parser @symbolic s@ parses 'char' @s@ and skips
 -- trailing white space.
-
 symbolic :: TokenParsing m => Char -> m Char
 symbolic name = token (highlight Symbol (char name))
 {-# INLINE symbolic #-}
 
 -- | Token parser @parens p@ parses @p@ enclosed in parenthesis,
 -- returning the value of @p@.
-
 parens :: TokenParsing m => m a -> m a
 parens = nesting . between (symbolic '(') (symbolic ')')
 {-# INLINE parens #-}
 
 -- | Token parser @braces p@ parses @p@ enclosed in braces (\'{\' and
 -- \'}\'), returning the value of @p@.
-
 braces :: TokenParsing m => m a -> m a
 braces = nesting . between (symbolic '{') (symbolic '}')
 {-# INLINE braces #-}
 
 -- | Token parser @angles p@ parses @p@ enclosed in angle brackets (\'\<\'
 -- and \'>\'), returning the value of @p@.
-
 angles :: TokenParsing m => m a -> m a
 angles = nesting . between (symbolic '<') (symbolic '>')
 {-# INLINE angles #-}
 
 -- | Token parser @brackets p@ parses @p@ enclosed in brackets (\'[\'
 -- and \']\'), returning the value of @p@.
-
 brackets :: TokenParsing m => m a -> m a
 brackets = nesting . between (symbolic '[') (symbolic ']')
 {-# INLINE brackets #-}
 
 -- | Token parser @comma@ parses the character \',\' and skips any
 -- trailing white space. Returns the string \",\".
-
 comma :: TokenParsing m => m Char
 comma = symbolic ','
 {-# INLINE comma #-}
 
 -- | Token parser @colon@ parses the character \':\' and skips any
 -- trailing white space. Returns the string \":\".
-
 colon :: TokenParsing m => m Char
 colon = symbolic ':'
 {-# INLINE colon #-}
 
 -- | Token parser @dot@ parses the character \'.\' and skips any
 -- trailing white space. Returns the string \".\".
-
 dot :: TokenParsing m => m Char
 dot = symbolic '.'
 {-# INLINE dot #-}
 
 -- | Token parser @semiSep p@ parses /zero/ or more occurrences of @p@
--- separated by 'semi'. Returns a list of values returned by
--- @p@.
-
+-- separated by 'semi'. Returns a list of values returned by @p@.
 semiSep :: TokenParsing m => m a -> m [a]
 semiSep p = sepBy p semi
 {-# INLINE semiSep #-}
 
 -- | Token parser @semiSep1 p@ parses /one/ or more occurrences of @p@
 -- separated by 'semi'. Returns a list of values returned by @p@.
-
 semiSep1 :: TokenParsing m => m a -> m [a]
 semiSep1 p = sepBy1 p semi
 {-# INLINE semiSep1 #-}
@@ -260,7 +243,6 @@ semiSep1 p = sepBy1 p semi
 -- | Token parser @commaSep p@ parses /zero/ or more occurrences of
 -- @p@ separated by 'comma'. Returns a list of values returned
 -- by @p@.
-
 commaSep :: TokenParsing m => m a -> m [a]
 commaSep p = sepBy p comma
 {-# INLINE commaSep #-}
@@ -268,11 +250,11 @@ commaSep p = sepBy p comma
 -- | Token parser @commaSep1 p@ parses /one/ or more occurrences of
 -- @p@ separated by 'comma'. Returns a list of values returned
 -- by @p@.
-
 commaSep1 :: TokenParsing m => m a -> m [a]
 commaSep1 p = sepBy p comma
 {-# INLINE commaSep1 #-}
 
+-- | Additional functionality that is needed to tokenize input while ignoring whitespace.
 class CharParsing m => TokenParsing m where
   -- | Usually, someSpace consists of /one/ or more occurrences of a 'space'.
   -- Some parsers may choose to recognize line comments or block (multi line)
@@ -344,6 +326,7 @@ instance (TokenParsing m, MonadPlus m) => TokenParsing (IdentityT m) where
   semi      = lift semi
   highlight h = IdentityT . highlight h . runIdentityT
 
+-- | Used to describe an input style for constructors, values, operators, etc.
 data IdentifierStyle m = IdentifierStyle
   { styleName              :: String
   , styleStart             :: m Char
@@ -508,7 +491,6 @@ fractFloat n = Right <$> fractExponent n
 -- value of the number.
 --
 -- This parser does NOT swallow trailing whitespace
-
 decimal :: TokenParsing m => m Integer
 decimal = number 10 digit
 {-# INLINE decimal #-}
@@ -518,7 +500,6 @@ decimal = number 10 digit
 -- number.
 --
 -- This parser does NOT swallow trailing whitespace
-
 hexadecimal :: TokenParsing m => m Integer
 hexadecimal = oneOf "xX" *> number 16 hexDigit
 {-# INLINE hexadecimal #-}
@@ -528,7 +509,6 @@ hexadecimal = oneOf "xX" *> number 16 hexDigit
 -- number.
 --
 -- This parser does NOT swallow trailing whitespace
-
 octal :: TokenParsing m => m Integer
 octal = oneOf "oO" *> number 8 octDigit
 {-# INLINE octal #-}

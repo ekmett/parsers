@@ -161,6 +161,7 @@ octDigit :: CharParsing m => m Char
 octDigit = satisfy isOctDigit <?> "octal digit"
 {-# INLINE octDigit #-}
 
+-- | Additional functionality needed to parse character streams.
 class Parsing m => CharParsing m where
   -- | Parse a single character of the input, with UTF-8 decoding
   satisfy :: (Char -> Bool) -> m Char

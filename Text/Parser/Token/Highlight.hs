@@ -18,6 +18,7 @@ module Text.Parser.Token.Highlight
   ( Highlight(..)
   ) where
 
+-- | Tags used by the 'Text.Parser.Token.TokenParsing' 'Text.Parser.Token.highlight' combinator.
 data Highlight
   = EscapeCode
   | Number

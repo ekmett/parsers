@@ -208,6 +208,7 @@ manyTill p end = go where go = ([] <$ end) <|> ((:) <$> p <*> go)
 
 infixr 0 <?>
 
+-- | Additional functionality needed to describe parsers independent of input type.
 class Alternative m => Parsing m where
   -- | Take a parser that may consume input, and on failure, go back to
   -- where we started and fail as if we didn't consume input.

@@ -37,16 +37,24 @@ import Text.Parser.Token
 import Text.Parser.Token.Highlight
 import Data.List (nub)
 
+-- | How to deal with comments.
 data CommentStyle = CommentStyle
-  { commentStart   :: String
-  , commentEnd     :: String
-  , commentLine    :: String
-  , commentNesting :: Bool
+  { commentStart   :: String -- ^ String that starts a multiline comment
+  , commentEnd     :: String -- ^ String that ends a multiline comment
+  , commentLine    :: String -- ^ String that starts a single line comment
+  , commentNesting :: Bool   -- ^ Can we nest multiline comments?
   }
 
-emptyCommentStyle, javaCommentStyle, haskellCommentStyle :: CommentStyle
+-- | No comments at all
+emptyCommentStyle :: CommentStyle
 emptyCommentStyle   = CommentStyle "" "" "" True
-javaCommentStyle    = CommentStyle "/*" "*/" "//" True
+
+-- | Use java-style comments
+javaCommentStyle :: CommentStyle
+javaCommentStyle = CommentStyle "/*" "*/" "//" True
+
+-- | Use haskell-style comments
+haskellCommentStyle :: CommentStyle
 haskellCommentStyle = CommentStyle "{-" "-}" "--" True
 
 -- | Use this to easily build the definition of whiteSpace for your MonadParser
@@ -79,7 +87,8 @@ buildSomeSpaceParser simpleSpace (CommentStyle startStyle endStyle lineStyle nes
 set :: [String] -> HashSet String
 set = HashSet.fromList
 
-emptyOps, haskell98Ops, haskellOps :: TokenParsing m => IdentifierStyle m
+-- | A simple operator style based on haskell with no reserved operators
+emptyOps :: TokenParsing m => IdentifierStyle m
 emptyOps = IdentifierStyle
   { styleName     = "operator"
   , styleStart    = styleLetter emptyOps
@@ -88,12 +97,15 @@ emptyOps = IdentifierStyle
   , styleHighlight = Operator
   , styleReservedHighlight = ReservedOperator
   }
+-- | A simple operator style based on haskell with the operators from Haskell 98.
+haskell98Ops, haskellOps :: TokenParsing m => IdentifierStyle m
 haskell98Ops = emptyOps
   { styleReserved = set ["::","..","=","\\","|","<-","->","@","~","=>"]
   }
 haskellOps = haskell98Ops
 
-emptyIdents, haskell98Idents, haskellIdents :: TokenParsing m => IdentifierStyle m
+-- | A simple identifier style based on haskell with no reserve words
+emptyIdents :: TokenParsing m => IdentifierStyle m
 emptyIdents = IdentifierStyle
   { styleName     = "identifier"
   , styleStart    = letter <|> char '_'
@@ -103,8 +115,13 @@ emptyIdents = IdentifierStyle
   , styleReservedHighlight = ReservedIdentifier
   }
 
+-- | A simple identifier style based on haskell with only the reserved words from Haskell 98.
+haskell98Idents :: TokenParsing m => IdentifierStyle m
 haskell98Idents = emptyIdents
   { styleReserved = set haskell98ReservedIdents }
+
+-- | A simple identifier style based on haskell with the reserved words from Haskell 98 and some common extensions.
+haskellIdents :: TokenParsing m => IdentifierStyle m
 haskellIdents = haskell98Idents
   { styleLetter   = styleLetter haskell98Idents <|> char '#'
   , styleReserved = set $ haskell98ReservedIdents ++

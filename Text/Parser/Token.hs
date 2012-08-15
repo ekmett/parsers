@@ -84,7 +84,7 @@ import Text.Parser.Token.Highlight
 -- | Skip zero or more bytes worth of white space. More complex parsers are
 -- free to consider comments as white space.
 whiteSpace :: TokenParsing m => m ()
-whiteSpace = someSpace <|> return ()
+whiteSpace = someSpace <|> pure ()
 {-# INLINE whiteSpace #-}
 
 -- | @token p@ first applies parser @p@ and then the 'whiteSpace'
@@ -134,8 +134,7 @@ stringLiteral = token (highlight StringLiteral lit) where
       <|> Nothing <$ escapeEmpty
       <|> Just <$> escapeCode
   escapeEmpty = char '&'
-  escapeGap = do skipSome space
-                 char '\\' <?> "end of string gap"
+  escapeGap = skipSome space *> (char '\\' <?> "end of string gap")
 {-# INLINE stringLiteral #-}
 
 -- | This token parser parses a natural number (a positive whole
@@ -144,7 +143,7 @@ stringLiteral = token (highlight StringLiteral lit) where
 -- 'octal'. The number is parsed according to the grammar
 -- rules in the Haskell report.
 
-natural :: TokenParsing m => m Integer
+natural :: (TokenParsing m, Monad m) => m Integer
 natural = token natural'
 {-# INLINE natural #-}
 
@@ -155,7 +154,7 @@ natural = token natural'
 -- or 'octal'. The number is parsed according
 -- to the grammar rules in the Haskell report.
 
-integer :: TokenParsing m => m Integer
+integer :: (TokenParsing m, Monad m) => m Integer
 integer = token (token (highlight Operator sgn <*> natural')) <?> "integer"
   where
   sgn = negate <$ char '-'
@@ -167,7 +166,7 @@ integer = token (token (highlight Operator sgn <*> natural')) <?> "integer"
 -- of the number. The number is parsed according to the grammar rules
 -- defined in the Haskell report.
 
-double :: TokenParsing m => m Double
+double :: (TokenParsing m, Monad m) => m Double
 double = token (highlight Number floating <?> "double")
 {-# INLINE double #-}
 
@@ -176,7 +175,7 @@ double = token (highlight Number floating <?> "double")
 -- any overlap in the grammar rules for naturals and floats. The number
 -- is parsed according to the grammar rules defined in the Haskell report.
 
-naturalOrDouble :: TokenParsing m => m (Either Integer Double)
+naturalOrDouble :: (TokenParsing m, Monad m) => m (Either Integer Double)
 naturalOrDouble = token (highlight Number natDouble <?> "number")
 {-# INLINE naturalOrDouble #-}
 
@@ -297,49 +296,49 @@ class CharParsing m => TokenParsing m where
   highlight :: Highlight -> m a -> m a
   highlight _ a = a
 
-instance TokenParsing m => TokenParsing (Lazy.StateT s m) where
+instance (TokenParsing m, MonadPlus m) => TokenParsing (Lazy.StateT s m) where
   nesting (Lazy.StateT m) = Lazy.StateT $ nesting . m
   someSpace = lift someSpace
   semi      = lift semi
   highlight h (Lazy.StateT m) = Lazy.StateT $ highlight h . m
 
-instance TokenParsing m => TokenParsing (Strict.StateT s m) where
+instance (TokenParsing m, MonadPlus m) => TokenParsing (Strict.StateT s m) where
   nesting (Strict.StateT m) = Strict.StateT $ nesting . m
   someSpace = lift someSpace
   semi      = lift semi
   highlight h (Strict.StateT m) = Strict.StateT $ highlight h . m
 
-instance TokenParsing m => TokenParsing (ReaderT e m) where
+instance (TokenParsing m, MonadPlus m) => TokenParsing (ReaderT e m) where
   nesting (ReaderT m) = ReaderT $ nesting . m
   someSpace = lift someSpace
   semi      = lift semi
   highlight h (ReaderT m) = ReaderT $ highlight h . m
 
-instance (TokenParsing m, Monoid w) => TokenParsing (Strict.WriterT w m) where
+instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Strict.WriterT w m) where
   nesting (Strict.WriterT m) = Strict.WriterT $ nesting m
   someSpace = lift someSpace
   semi      = lift semi
   highlight h (Strict.WriterT m) = Strict.WriterT $ highlight h m
 
-instance (TokenParsing m, Monoid w) => TokenParsing (Lazy.WriterT w m) where
+instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Lazy.WriterT w m) where
   nesting (Lazy.WriterT m) = Lazy.WriterT $ nesting m
   someSpace = lift someSpace
   semi      = lift semi
   highlight h (Lazy.WriterT m) = Lazy.WriterT $ highlight h m
 
-instance (TokenParsing m, Monoid w) => TokenParsing (Lazy.RWST r w s m) where
+instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Lazy.RWST r w s m) where
   nesting (Lazy.RWST m) = Lazy.RWST $ \r s -> nesting (m r s)
   someSpace = lift someSpace
   semi      = lift semi
   highlight h (Lazy.RWST m) = Lazy.RWST $ \r s -> highlight h (m r s)
 
-instance (TokenParsing m, Monoid w) => TokenParsing (Strict.RWST r w s m) where
+instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Strict.RWST r w s m) where
   nesting (Strict.RWST m) = Strict.RWST $ \r s -> nesting (m r s)
   someSpace = lift someSpace
   semi      = lift semi
   highlight h (Strict.RWST m) = Strict.RWST $ \r s -> highlight h (m r s)
 
-instance TokenParsing m => TokenParsing (IdentityT m) where
+instance (TokenParsing m, MonadPlus m) => TokenParsing (IdentityT m) where
   nesting = IdentityT . nesting . runIdentityT
   someSpace = lift someSpace
   semi      = lift semi
@@ -363,14 +362,14 @@ liftIdentifierStyle s =
 {-# INLINE liftIdentifierStyle #-}
 
 -- | parse a reserved operator or identifier using a given style
-reserve :: TokenParsing m => IdentifierStyle m -> String -> m ()
+reserve :: (TokenParsing m, Monad m) => IdentifierStyle m -> String -> m ()
 reserve s name = token $ try $ do
    _ <- highlight (styleReservedHighlight s) $ string name
    notFollowedBy (styleLetter s) <?> "end of " ++ show name
 {-# INLINE reserve #-}
 
 -- | parse an non-reserved identifier or symbol
-ident :: TokenParsing m => IdentifierStyle m -> m String
+ident :: (TokenParsing m, Monad m) => IdentifierStyle m -> m String
 ident s = token $ try $ do
   name <- highlight (styleHighlight s)
           ((:) <$> styleStart s <*> many (styleLetter s) <?> styleName s)
@@ -439,7 +438,7 @@ escapeCode = (charEsc <|> charNum <|> charAscii <|> charControl) <?> "escape cod
 -- rules in the Haskell report.
 --
 -- This parser does NOT swallow trailing whitespace.
-natural' :: TokenParsing m => m Integer
+natural' :: (TokenParsing m, Monad m) => m Integer
 natural' = highlight Number nat <?> "natural"
 
 number :: TokenParsing m => Integer -> m Char -> m Integer
@@ -458,7 +457,7 @@ number base baseDigit =
 -- Also, unlike the 'integer' parser, this parser does not admit spaces
 -- between the sign and the number.
 
-integer' :: TokenParsing m => m Integer
+integer' :: (TokenParsing m, Monad m) => m Integer
 integer' = int <?> "integer"
 {-# INLINE integer' #-}
 
@@ -468,13 +467,13 @@ sign = highlight Operator
    <|> id <$ char '+'
    <|> pure id
 
-int :: TokenParsing m => m Integer
+int :: (TokenParsing m, Monad m) => m Integer
 int = {-token-} sign <*> highlight Number nat
-nat, zeroNumber :: TokenParsing m => m Integer
+nat, zeroNumber :: (TokenParsing m, Monad m) => m Integer
 nat = zeroNumber <|> decimal
 zeroNumber = char '0' *> (hexadecimal <|> octal <|> decimal <|> return 0) <?> ""
 
-floating :: TokenParsing m => m Double
+floating :: (TokenParsing m, Monad m) => m Double
 floating = decimal >>= fractExponent
 {-# INLINE floating #-}
 
@@ -483,17 +482,12 @@ fractExponent n = (\fract expo -> (fromInteger n + fract) * expo) <$> fraction <
               <|> (fromInteger n *) <$> exponent' where
   fraction = Prelude.foldr op 0.0 <$> (char '.' *> (some digit <?> "fraction"))
   op d f = (f + fromIntegral (digitToInt d))/10.0
-  exponent' = do
-       _ <- oneOf "eE"
-       f <- sign
-       e <- decimal <?> "exponent"
-       return (power (f e))
-    <?> "exponent"
+  exponent' = ((\f e -> power (f e)) <$ oneOf "eE" <*> sign <*> (decimal <?> "exponent")) <?> "exponent"
   power e
     | e < 0     = 1.0/power(-e)
     | otherwise = fromInteger (10^e)
 
-natDouble, zeroNumFloat, decimalFloat :: TokenParsing m => m (Either Integer Double)
+natDouble, zeroNumFloat, decimalFloat :: (TokenParsing m, Monad m) => m (Either Integer Double)
 natDouble
     = char '0' *> zeroNumFloat
   <|> decimalFloat
@@ -547,7 +541,7 @@ newtype Unhighlighted m a = Unhighlighted { runUnhighlighted :: m a }
 instance MonadTrans Unhighlighted where
   lift = Unhighlighted
 
-instance TokenParsing m => TokenParsing (Unhighlighted m) where
+instance (TokenParsing m, MonadPlus m) => TokenParsing (Unhighlighted m) where
   nesting (Unhighlighted m) = Unhighlighted (nesting m)
   someSpace = lift someSpace
   semi      = lift semi
@@ -561,7 +555,7 @@ newtype Unspaced m a = Unspaced { runUnspaced :: m a }
 instance MonadTrans Unspaced where
   lift = Unspaced
 
-instance TokenParsing m => TokenParsing (Unspaced m) where
+instance (TokenParsing m, MonadPlus m) => TokenParsing (Unspaced m) where
   nesting (Unspaced m) = Unspaced (nesting m)
   someSpace = empty
   semi      = lift semi

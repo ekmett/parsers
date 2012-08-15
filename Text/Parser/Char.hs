@@ -53,6 +53,7 @@ import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
+import Control.Monad (MonadPlus(..))
 import Data.Char
 import Data.CharSet (CharSet(..))
 import qualified Data.CharSet as CharSet
@@ -164,7 +165,7 @@ class Parsing m => CharParsing m where
   -- | Parse a single character of the input, with UTF-8 decoding
   satisfy :: (Char -> Bool) -> m Char
 #ifdef USE_DEFAULT_SIGNATURES
-  default satisfy :: (MonadTrans t, CharParsing n, m ~ t n) =>
+  default satisfy :: (MonadTrans t, CharParsing n, Monad n, m ~ t n) =>
                      (Char -> Bool) ->
                      t n Char
   satisfy = lift . satisfy
@@ -196,56 +197,56 @@ class Parsing m => CharParsing m where
   string s = s <$ try (traverse_ char s) <?> show s
 
 
-instance CharParsing m => CharParsing (Lazy.StateT s m) where
+instance (CharParsing m, MonadPlus m) => CharParsing (Lazy.StateT s m) where
   satisfy = lift . satisfy
   char    = lift . char
   notChar = lift . notChar
   anyChar = lift anyChar
   string  = lift . string
 
-instance CharParsing m => CharParsing (Strict.StateT s m) where
+instance (CharParsing m, MonadPlus m) => CharParsing (Strict.StateT s m) where
   satisfy = lift . satisfy
   char    = lift . char
   notChar = lift . notChar
   anyChar = lift anyChar
   string  = lift . string
 
-instance CharParsing m => CharParsing (ReaderT e m) where
+instance (CharParsing m, MonadPlus m) => CharParsing (ReaderT e m) where
   satisfy = lift . satisfy
   char    = lift . char
   notChar = lift . notChar
   anyChar = lift anyChar
   string  = lift . string
 
-instance (CharParsing m, Monoid w) => CharParsing (Strict.WriterT w m) where
+instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Strict.WriterT w m) where
   satisfy = lift . satisfy
   char    = lift . char
   notChar = lift . notChar
   anyChar = lift anyChar
   string  = lift . string
 
-instance (CharParsing m, Monoid w) => CharParsing (Lazy.WriterT w m) where
+instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Lazy.WriterT w m) where
   satisfy = lift . satisfy
   char    = lift . char
   notChar = lift . notChar
   anyChar = lift anyChar
   string  = lift . string
 
-instance (CharParsing m, Monoid w) => CharParsing (Lazy.RWST r w s m) where
+instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Lazy.RWST r w s m) where
   satisfy = lift . satisfy
   char    = lift . char
   notChar = lift . notChar
   anyChar = lift anyChar
   string  = lift . string
 
-instance (CharParsing m, Monoid w) => CharParsing (Strict.RWST r w s m) where
+instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Strict.RWST r w s m) where
   satisfy = lift . satisfy
   char    = lift . char
   notChar = lift . notChar
   anyChar = lift anyChar
   string  = lift . string
 
-instance CharParsing m => CharParsing (IdentityT m) where
+instance (CharParsing m, MonadPlus m) => CharParsing (IdentityT m) where
   satisfy = lift . satisfy
   char    = lift . char
   notChar = lift . notChar

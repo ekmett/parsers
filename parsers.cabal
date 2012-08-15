@@ -1,6 +1,6 @@
 name:          parsers
 category:      Text, Parsing
-version:       0.2
+version:       0.3
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -10,8 +10,8 @@ stability:     experimental
 homepage:      http://github.com/ekmett/parsers/
 bug-reports:   http://github.com/ekmett/parsers/issues
 copyright:     Copyright (C) 2010-2012 Edward A. Kmett
-synopsis:      Simple parsing combinators
-description:   Simple parsing combinators
+synopsis:      Parsing combinators
+description:   Parsing combinators
 build-type:    Simple
 
 extra-source-files: .travis.yml

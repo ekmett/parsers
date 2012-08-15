@@ -86,7 +86,7 @@ type OperatorTable m a = [[Operator m a]]
 -- >  prefix  name fun       = Prefix (fun <* reservedOp name)
 -- >  postfix name fun       = Postfix (fun <* reservedOp name)
 
-buildExpressionParser :: Parsing m
+buildExpressionParser :: (Parsing m, Monad m)
                       => OperatorTable m a
                       -> m a
                       -> m a

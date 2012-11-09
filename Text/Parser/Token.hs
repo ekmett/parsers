@@ -479,7 +479,7 @@ zeroNumFloat
   <|> decimalFloat
   <|> pure 0 <**> fractFloat
   <|> pure (Left 0)
-decimalFloat = decimal <**> option Left fractFloat
+decimalFloat = decimal <**> option Left (try fractFloat)
 
 fractFloat :: TokenParsing m => m (Integer -> Either Integer Double)
 fractFloat = (Right .) <$> fractExponent

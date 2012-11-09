@@ -108,11 +108,13 @@ buildExpressionParser operators simpleExpr
               ambigiousLeft     = ambigious "left" lassocOp
               ambigiousNon      = ambigious "non" nassocOp
 
-              termP      = do{ pre  <- prefixP
-                             ; x    <- term
-                             ; post <- postfixP
-                             ; return (post (pre x))
-                             }
+              preTermP   =     do { pre <- prefixP; x <- term; return $ pre x }
+                           <|> term
+
+              termP      = do { x <- preTermP
+                              ; post <- postfixP
+                              ; return (post x)
+                              }
 
               postfixP   = postfixOp <|> return id
 

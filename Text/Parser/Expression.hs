@@ -102,11 +102,11 @@ buildExpressionParser operators simpleExpr
               prefixOp   = choice prefix  <?> ""
               postfixOp  = choice postfix <?> ""
 
-              ambigious assoc op= try $ op *> fail ("ambiguous use of a " ++ assoc ++ " associative operator")
+              ambiguous assoc op= try $ op *> fail ("ambiguous use of a " ++ assoc ++ " associative operator")
 
-              ambigiousRight    = ambigious "right" rassocOp
-              ambigiousLeft     = ambigious "left" lassocOp
-              ambigiousNon      = ambigious "non" nassocOp
+              ambiguousRight    = ambiguous "right" rassocOp
+              ambiguousLeft     = ambiguous "left" lassocOp
+              ambiguousNon      = ambiguous "non" nassocOp
 
               preTermP   =     do { pre <- prefixP; x <- term; return $ pre x }
                            <|> term
@@ -124,8 +124,8 @@ buildExpressionParser operators simpleExpr
                              ; y <- termP >>= rassocP1
                              ; return (f x y)
                              }
-                           <|> ambigiousLeft
-                           <|> ambigiousNon
+                           <|> ambiguousLeft
+                           <|> ambiguousNon
                            -- <|> return x
 
               rassocP1 x = rassocP x <|> return x
@@ -134,17 +134,17 @@ buildExpressionParser operators simpleExpr
                              ; y <- termP
                              ; lassocP1 (f x y)
                              }
-                           <|> ambigiousRight
-                           <|> ambigiousNon
+                           <|> ambiguousRight
+                           <|> ambiguousNon
                            -- <|> return x
 
               lassocP1 x = lassocP x <|> return x
 
               nassocP x  = do{ f <- nassocOp
                              ; y <- termP
-                             ;    ambigiousRight
-                              <|> ambigiousLeft
-                              <|> ambigiousNon
+                             ;    ambiguousRight
+                              <|> ambiguousLeft
+                              <|> ambiguousNon
                               <|> return (f x y)
                              }
                            -- <|> return x

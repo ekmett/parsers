@@ -174,14 +174,14 @@ class Parsing m => CharParsing m where
   -- | @char c@ parses a single character @c@. Returns the parsed
   -- character (i.e. @c@).
   --
-  -- >  semiColon  = char ';'
+  -- /e.g./
+  --
+  -- @semiColon = 'char' ';'@
   char :: CharParsing m => Char -> m Char
   char c = satisfy (c ==) <?> show [c]
 
   -- | @notChar c@ parses any single character other than @c@. Returns the parsed
   -- character.
-  --
-  -- >  semiColon  = char ';'
   notChar :: CharParsing m => Char -> m Char
   notChar c = satisfy (c /=)
 

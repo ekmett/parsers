@@ -22,7 +22,6 @@ module Text.Parser.Token
   (
   -- * Token Parsing
     whiteSpace      -- :: TokenParsing m => m ()
-  , token           -- :: TokenParsing m => m a -> m a
   , charLiteral     -- :: TokenParsing m => m Char
   , stringLiteral   -- :: TokenParsing m => m String
   , natural         -- :: TokenParsing m => m Integer
@@ -86,21 +85,6 @@ import Text.Parser.Token.Highlight
 whiteSpace :: TokenParsing m => m ()
 whiteSpace = someSpace <|> pure ()
 {-# INLINE whiteSpace #-}
-
--- | @token p@ first applies parser @p@ and then the 'whiteSpace'
--- parser, returning the value of @p@. Every lexical
--- token (token) is defined using @token@, this way every parse
--- starts at a point without white space. Parsers that use @token@ are
--- called /token/ parsers in this document.
---
--- The only point where the 'whiteSpace' parser should be
--- called explicitly is the start of the main parser in order to skip
--- any leading white space.
---
--- > mainParser  = sum <$ whiteSpace <*> many (token digit) <* eof
-token :: TokenParsing m => m a -> m a
-token p = p <* whiteSpace
-{-# INLINE token #-}
 
 -- | This token parser parses a single literal character. Returns the
 -- literal character value. This parsers deals correctly with escape
@@ -271,12 +255,30 @@ class CharParsing m => TokenParsing m where
   -- any trailing white space. Returns the character \';\'. Overloadable to
   -- permit automatic semicolon insertion or Haskell-style layout.
   semi :: m Char
-  semi = (satisfy (';'==) <?> ";") <* (someSpace <|> pure ())
+  semi = token (satisfy (';'==) <?> ";")
 
   -- | Tag a region of parsed text with a bit of semantic information.
   -- Most parsers won't use this, but it is indispensible for highlighters.
   highlight :: Highlight -> m a -> m a
   highlight _ a = a
+
+  -- | @token p@ first applies parser @p@ and then the 'whiteSpace'
+  -- parser, returning the value of @p@. Every lexical
+  -- token (token) is defined using @token@, this way every parse
+  -- starts at a point without white space. Parsers that use @token@ are
+  -- called /token/ parsers in this document.
+  --
+  -- The only point where the 'whiteSpace' parser should be
+  -- called explicitly is the start of the main parser in order to skip
+  -- any leading white space.
+  --
+  -- Alternatively, one might define 'token' as first parsing 'whiteSpace'
+  -- and then parser @p@.  By parsing whiteSpace first, the parser is able
+  -- to return before parsing additional whiteSpace, improving laziness.
+  --
+  -- > mainParser  = sum <$ whiteSpace <*> many (token digit) <* eof
+  token :: m a -> m a
+  token p = p <* (someSpace <|> pure ())
 
 instance (TokenParsing m, MonadPlus m) => TokenParsing (Lazy.StateT s m) where
   nesting (Lazy.StateT m) = Lazy.StateT $ nesting . m

@@ -43,6 +43,7 @@ infixl 2 <$$>, <$?>
 
 (<||>) :: Functor m => Permutation m (a -> b) -> m a -> Permutation m b
 (<||>) = add
+{-# INLINE (<||>) #-}
 
 -- | The expression @f \<$$> p@ creates a fresh permutation parser
 -- consisting of parser @p@. The the final result of the permutation
@@ -60,6 +61,7 @@ infixl 2 <$$>, <$?>
 
 (<$$>) :: Functor m => (a -> b) -> m a -> Permutation m b
 (<$$>) f p = newPermutation f <||> p
+{-# INLINE (<$$>) #-}
 
 -- | The expression @perm \<||> (x,p)@ adds parser @p@ to the
 -- permutation parser @perm@. The parser @p@ is optional - if it can
@@ -68,6 +70,7 @@ infixl 2 <$$>, <$?>
 
 (<|?>) :: Functor m => Permutation m (a -> b) -> (a, m a) -> Permutation m b
 (<|?>) perm (x,p) = addOpt perm x p
+{-# INLINE (<|?>) #-}
 
 -- | The expression @f \<$?> (x,p)@ creates a fresh permutation parser
 -- consisting of parser @p@. The the final result of the permutation
@@ -77,6 +80,7 @@ infixl 2 <$$>, <$?>
 
 (<$?>) :: Functor m => (a -> b) -> (a, m a) -> Permutation m b
 (<$?>) f (x,p) = newPermutation f <|?> (x,p)
+{-# INLINE (<$?>) #-}
 
 ----------------------------------------------------------------
 -- The permutation tree
@@ -123,6 +127,7 @@ permute (Permutation def xs)
 -- build permutation trees
 newPermutation :: (a -> b) -> Permutation m (a -> b)
 newPermutation f = Permutation (Just f) []
+{-# INLINE newPermutation #-}
 
 add :: Functor m => Permutation m (a -> b) -> m a -> Permutation m b
 add perm@(Permutation _mf fs) p

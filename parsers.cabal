@@ -1,6 +1,6 @@
 name:          parsers
 category:      Text, Parsing
-version:       0.3.2
+version:       0.4
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -12,13 +12,17 @@ bug-reports:   http://github.com/ekmett/parsers/issues
 copyright:     Copyright (C) 2010-2012 Edward A. Kmett
 synopsis:      Parsing combinators
 description:   Parsing combinators
-build-type:    Simple
+build-type:    Custom
 
 extra-source-files: .travis.yml
 
 source-repository head
   type: git
   location: git://github.com/ekmett/parsers.git
+
+flag lib-Werror
+  manual: True
+  default: False
 
 library
   exposed-modules:
@@ -30,18 +34,33 @@ library
     Text.Parser.Token.Style
     Text.Parser.Token.Highlight
 
-  ghc-options: -Wall
+  hs-source-dirs: src
+
+  if flag(lib-Werror)
+    ghc-options: -Wall
+  else
+    ghc-options: -Wall
+
+  ghc-options: -O2
 
   build-depends:
     base                 >= 4       && < 5,
-    charset              >= 0.3     && < 0.4,
+    charset              >= 0.3,
     containers           >= 0.4     && < 0.6,
     transformers         >= 0.2     && < 0.4,
     unordered-containers >= 0.2     && < 0.3
 
-  other-extensions: CPP, ExistentialQuantification
-
-  -- Cabal doesn't understand DefaultSignatures
-
-  -- if impl(ghc >= 7.4)
-  --   other-extensions: DefaultSignatures, TypeFamilies
+-- Verify the results of the examples
+test-suite doctests
+  type:    exitcode-stdio-1.0
+  main-is: doctests.hs
+  build-depends:
+    base,
+    containers,
+    directory >= 1.0,
+    doctest >= 0.9.1,
+    filepath
+  ghc-options: -Wall -threaded
+  if impl(ghc<7.6.1)
+    ghc-options: -Werror
+  hs-source-dirs: tests

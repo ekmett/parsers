@@ -103,6 +103,7 @@ noneOfSet s = oneOfSet (CharSet.complement s)
 -- 'whiteSpace'.
 spaces :: CharParsing m => m ()
 spaces = skipMany space <?> "white space"
+{-# INLINE spaces #-}
 
 -- | Parses a white space character (any character which satisfies 'isSpace')
 -- Returns the parsed character.
@@ -179,15 +180,18 @@ class Parsing m => CharParsing m where
   -- @semiColon = 'char' ';'@
   char :: CharParsing m => Char -> m Char
   char c = satisfy (c ==) <?> show [c]
+  {-# INLINE char #-}
 
   -- | @notChar c@ parses any single character other than @c@. Returns the parsed
   -- character.
   notChar :: CharParsing m => Char -> m Char
   notChar c = satisfy (c /=)
+  {-# INLINE notChar #-}
 
   -- | This parser succeeds for any character. Returns the parsed character.
   anyChar :: CharParsing m => m Char
   anyChar = satisfy (const True)
+  {-# INLINE anyChar #-}
 
   -- | @string s@ parses a sequence of characters given by @s@. Returns
   -- the parsed string (i.e. @s@).
@@ -196,61 +200,101 @@ class Parsing m => CharParsing m where
   -- >              <|> string "mod"
   string :: CharParsing m => String -> m String
   string s = s <$ try (traverse_ char s) <?> show s
+  {-# INLINE string #-}
 
 
 instance (CharParsing m, MonadPlus m) => CharParsing (Lazy.StateT s m) where
   satisfy = lift . satisfy
+  {-# INLINE satisfy #-}
   char    = lift . char
+  {-# INLINE char #-}
   notChar = lift . notChar
+  {-# INLINE notChar #-}
   anyChar = lift anyChar
+  {-# INLINE anyChar #-}
   string  = lift . string
+  {-# INLINE string #-}
 
 instance (CharParsing m, MonadPlus m) => CharParsing (Strict.StateT s m) where
   satisfy = lift . satisfy
+  {-# INLINE satisfy #-}
   char    = lift . char
+  {-# INLINE char #-}
   notChar = lift . notChar
+  {-# INLINE notChar #-}
   anyChar = lift anyChar
+  {-# INLINE anyChar #-}
   string  = lift . string
+  {-# INLINE string #-}
 
 instance (CharParsing m, MonadPlus m) => CharParsing (ReaderT e m) where
   satisfy = lift . satisfy
+  {-# INLINE satisfy #-}
   char    = lift . char
+  {-# INLINE char #-}
   notChar = lift . notChar
+  {-# INLINE notChar #-}
   anyChar = lift anyChar
+  {-# INLINE anyChar #-}
   string  = lift . string
+  {-# INLINE string #-}
 
 instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Strict.WriterT w m) where
   satisfy = lift . satisfy
+  {-# INLINE satisfy #-}
   char    = lift . char
+  {-# INLINE char #-}
   notChar = lift . notChar
+  {-# INLINE notChar #-}
   anyChar = lift anyChar
+  {-# INLINE anyChar #-}
   string  = lift . string
+  {-# INLINE string #-}
 
 instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Lazy.WriterT w m) where
   satisfy = lift . satisfy
+  {-# INLINE satisfy #-}
   char    = lift . char
+  {-# INLINE char #-}
   notChar = lift . notChar
+  {-# INLINE notChar #-}
   anyChar = lift anyChar
+  {-# INLINE anyChar #-}
   string  = lift . string
+  {-# INLINE string #-}
 
 instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Lazy.RWST r w s m) where
   satisfy = lift . satisfy
+  {-# INLINE satisfy #-}
   char    = lift . char
+  {-# INLINE char #-}
   notChar = lift . notChar
+  {-# INLINE notChar #-}
   anyChar = lift anyChar
+  {-# INLINE anyChar #-}
   string  = lift . string
+  {-# INLINE string #-}
 
 instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Strict.RWST r w s m) where
   satisfy = lift . satisfy
+  {-# INLINE satisfy #-}
   char    = lift . char
+  {-# INLINE char #-}
   notChar = lift . notChar
+  {-# INLINE notChar #-}
   anyChar = lift anyChar
+  {-# INLINE anyChar #-}
   string  = lift . string
+  {-# INLINE string #-}
 
 instance (CharParsing m, MonadPlus m) => CharParsing (IdentityT m) where
   satisfy = lift . satisfy
+  {-# INLINE satisfy #-}
   char    = lift . char
+  {-# INLINE char #-}
   notChar = lift . notChar
+  {-# INLINE notChar #-}
   anyChar = lift anyChar
+  {-# INLINE anyChar #-}
   string  = lift . string
-
+  {-# INLINE string #-}

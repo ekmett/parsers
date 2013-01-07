@@ -17,6 +17,12 @@ module Text.Parser.Token.Style
   (
   -- * Comment and white space styles
     CommentStyle(..)
+  -- ** Lenses
+  , commentStart
+  , commentEnd
+  , commentLine
+  , commentNesting
+  -- ** Common Comment Styles
   , emptyCommentStyle
   , javaCommentStyle
   , haskellCommentStyle
@@ -39,11 +45,39 @@ import Data.List (nub)
 
 -- | How to deal with comments.
 data CommentStyle = CommentStyle
-  { commentStart   :: String -- ^ String that starts a multiline comment
-  , commentEnd     :: String -- ^ String that ends a multiline comment
-  , commentLine    :: String -- ^ String that starts a single line comment
-  , commentNesting :: Bool   -- ^ Can we nest multiline comments?
+  { _commentStart   :: String -- ^ String that starts a multiline comment
+  , _commentEnd     :: String -- ^ String that ends a multiline comment
+  , _commentLine    :: String -- ^ String that starts a single line comment
+  , _commentNesting :: Bool   -- ^ Can we nest multiline comments?
   }
+
+-- | This is a lens that can edit the string that starts a multiline comment.
+--
+-- @'commentStart' :: Lens' 'CommentStyle' 'String'@
+commentStart :: Functor f => (String -> f String) -> CommentStyle -> f CommentStyle
+commentStart f (CommentStyle s e l n) = (\s' -> CommentStyle s' e l n) <$> f s
+{-# INLINE commentStart #-}
+
+-- | This is a lens that can edit the string that ends a multiline comment.
+--
+-- @'commentEnd' :: Lens' 'CommentStyle' 'String'@
+commentEnd :: Functor f => (String -> f String) -> CommentStyle -> f CommentStyle
+commentEnd f (CommentStyle s e l n) = (\e' -> CommentStyle s e' l n) <$> f e
+{-# INLINE commentEnd #-}
+
+-- | This is a lens that can edit the string that starts a single line comment.
+--
+-- @'commentLine' :: Lens' 'CommentStyle' 'String'@
+commentLine :: Functor f => (String -> f String) -> CommentStyle -> f CommentStyle
+commentLine f (CommentStyle s e l n) = (\l' -> CommentStyle s e l' n) <$> f l
+{-# INLINE commentLine #-}
+
+-- | This is a lens that can edit whether we can nest multiline comments.
+--
+-- @'commentNesting' :: Lens' 'CommentStyle' 'Bool'@
+commentNesting :: Functor f => (Bool -> f Bool) -> CommentStyle -> f CommentStyle
+commentNesting f (CommentStyle s e l n) = CommentStyle s e l <$> f n
+{-# INLINE commentNesting #-}
 
 -- | No comments at all
 emptyCommentStyle :: CommentStyle
@@ -90,41 +124,41 @@ set = HashSet.fromList
 -- | A simple operator style based on haskell with no reserved operators
 emptyOps :: TokenParsing m => IdentifierStyle m
 emptyOps = IdentifierStyle
-  { styleName     = "operator"
-  , styleStart    = styleLetter emptyOps
-  , styleLetter   = oneOf ":!#$%&*+./<=>?@\\^|-~"
-  , styleReserved = mempty
-  , styleHighlight = Operator
-  , styleReservedHighlight = ReservedOperator
+  { _styleName     = "operator"
+  , _styleStart    = _styleLetter emptyOps
+  , _styleLetter   = oneOf ":!#$%&*+./<=>?@\\^|-~"
+  , _styleReserved = mempty
+  , _styleHighlight = Operator
+  , _styleReservedHighlight = ReservedOperator
   }
 -- | A simple operator style based on haskell with the operators from Haskell 98.
 haskell98Ops, haskellOps :: TokenParsing m => IdentifierStyle m
 haskell98Ops = emptyOps
-  { styleReserved = set ["::","..","=","\\","|","<-","->","@","~","=>"]
+  { _styleReserved = set ["::","..","=","\\","|","<-","->","@","~","=>"]
   }
 haskellOps = haskell98Ops
 
 -- | A simple identifier style based on haskell with no reserve words
 emptyIdents :: TokenParsing m => IdentifierStyle m
 emptyIdents = IdentifierStyle
-  { styleName     = "identifier"
-  , styleStart    = letter <|> char '_'
-  , styleLetter   = alphaNum <|> oneOf "_'"
-  , styleReserved = set []
-  , styleHighlight = Identifier
-  , styleReservedHighlight = ReservedIdentifier
+  { _styleName     = "identifier"
+  , _styleStart    = letter <|> char '_'
+  , _styleLetter   = alphaNum <|> oneOf "_'"
+  , _styleReserved = set []
+  , _styleHighlight = Identifier
+  , _styleReservedHighlight = ReservedIdentifier
   }
 
 -- | A simple identifier style based on haskell with only the reserved words from Haskell 98.
 haskell98Idents :: TokenParsing m => IdentifierStyle m
 haskell98Idents = emptyIdents
-  { styleReserved = set haskell98ReservedIdents }
+  { _styleReserved = set haskell98ReservedIdents }
 
 -- | A simple identifier style based on haskell with the reserved words from Haskell 98 and some common extensions.
 haskellIdents :: TokenParsing m => IdentifierStyle m
 haskellIdents = haskell98Idents
-  { styleLetter   = styleLetter haskell98Idents <|> char '#'
-  , styleReserved = set $ haskell98ReservedIdents ++
+  { _styleLetter   = _styleLetter haskell98Idents <|> char '#'
+  , _styleReserved = set $ haskell98ReservedIdents ++
       ["foreign","import","export","primitive","_ccall_","_casm_" ,"forall"]
   }
 

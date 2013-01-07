@@ -221,11 +221,13 @@ class Alternative m => Parsing m where
   -- can often be implemented more cheaply.
   skipMany :: m a -> m ()
   skipMany p = () <$ many p
+  {-# INLINE skipMany #-}
 
   -- | @skipSome p@ applies the parser @p@ /one/ or more times, skipping
   -- its result. (aka skipMany1 in parsec)
   skipSome :: m a -> m ()
   skipSome p = p *> skipMany p
+  {-# INLINE skipSome #-}
 
   -- | @lookAhead p@ parses @p@ without consuming any input.
   lookAhead :: m a -> m a
@@ -236,6 +238,7 @@ class Alternative m => Parsing m where
   default unexpected :: (MonadTrans t, Monad n, Parsing n, m ~ t n) =>
                         String -> t n a
   unexpected = lift . unexpected
+  {-# INLINE unexpected #-}
 #endif
 
   -- | This parser only succeeds at the end of the input. This is not a
@@ -246,6 +249,7 @@ class Alternative m => Parsing m where
 #ifdef USE_DEFAULT_SIGNATURES
   default eof :: (MonadTrans t, Monad n, Parsing n, m ~ t n) => t n ()
   eof = lift eof
+  {-# INLINE eof #-}
 #endif
 
   -- | @notFollowedBy p@ only succeeds when parser @p@ fails. This parser
@@ -259,61 +263,104 @@ class Alternative m => Parsing m where
   -- >  keywordLet  = try $ string "let" <* notFollowedBy alphaNum
   notFollowedBy :: (Monad m, Show a) => m a -> m ()
   notFollowedBy p = try ((try p >>= unexpected . show) <|> pure ())
+  {-# INLINE notFollowedBy #-}
 
 instance (Parsing m, MonadPlus m) => Parsing (Lazy.StateT s m) where
   try (Lazy.StateT m) = Lazy.StateT $ try . m
+  {-# INLINE try #-}
   Lazy.StateT m <?> l = Lazy.StateT $ \s -> m s <?> l
+  {-# INLINE (<?>) #-}
   lookAhead (Lazy.StateT m) = Lazy.StateT $ lookAhead . m
+  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
+  {-# INLINE unexpected #-}
   eof = lift eof
+  {-# INLINE eof #-}
 
 instance (Parsing m, MonadPlus m) => Parsing (Strict.StateT s m) where
   try (Strict.StateT m) = Strict.StateT $ try . m
+  {-# INLINE try #-}
   Strict.StateT m <?> l = Strict.StateT $ \s -> m s <?> l
+  {-# INLINE (<?>) #-}
   lookAhead (Strict.StateT m) = Strict.StateT $ lookAhead . m
+  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
+  {-# INLINE unexpected #-}
   eof = lift eof
+  {-# INLINE eof #-}
 
 instance (Parsing m, MonadPlus m) => Parsing (ReaderT e m) where
   try (ReaderT m) = ReaderT $ try . m
+  {-# INLINE try #-}
   ReaderT m <?> l = ReaderT $ \e -> m e <?> l
+  {-# INLINE (<?>) #-}
   skipMany (ReaderT m) = ReaderT $ skipMany . m
+  {-# INLINE skipMany #-}
   lookAhead (ReaderT m) = ReaderT $ lookAhead . m
+  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
+  {-# INLINE unexpected #-}
   eof = lift eof
+  {-# INLINE eof #-}
 
 instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Strict.WriterT w m) where
   try (Strict.WriterT m) = Strict.WriterT $ try m
+  {-# INLINE try #-}
   Strict.WriterT m <?> l = Strict.WriterT (m <?> l)
+  {-# INLINE (<?>) #-}
   lookAhead (Strict.WriterT m) = Strict.WriterT $ lookAhead m
+  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
+  {-# INLINE unexpected #-}
   eof = lift eof
+  {-# INLINE eof #-}
 
 instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Lazy.WriterT w m) where
   try (Lazy.WriterT m) = Lazy.WriterT $ try m
+  {-# INLINE try #-}
   Lazy.WriterT m <?> l = Lazy.WriterT (m <?> l)
+  {-# INLINE (<?>) #-}
   lookAhead (Lazy.WriterT m) = Lazy.WriterT $ lookAhead m
+  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
+  {-# INLINE unexpected #-}
   eof = lift eof
+  {-# INLINE eof #-}
 
 instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Lazy.RWST r w s m) where
   try (Lazy.RWST m) = Lazy.RWST $ \r s -> try (m r s)
+  {-# INLINE try #-}
   Lazy.RWST m <?> l = Lazy.RWST $ \r s -> m r s <?> l
+  {-# INLINE (<?>) #-}
   lookAhead (Lazy.RWST m) = Lazy.RWST $ \r s -> lookAhead (m r s)
+  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
+  {-# INLINE unexpected #-}
   eof = lift eof
+  {-# INLINE eof #-}
 
 instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Strict.RWST r w s m) where
   try (Strict.RWST m) = Strict.RWST $ \r s -> try (m r s)
+  {-# INLINE try #-}
   Strict.RWST m <?> l = Strict.RWST $ \r s -> m r s <?> l
+  {-# INLINE (<?>) #-}
   lookAhead (Strict.RWST m) = Strict.RWST $ \r s -> lookAhead (m r s)
+  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
+  {-# INLINE unexpected #-}
   eof = lift eof
+  {-# INLINE eof #-}
 
 instance (Parsing m, Monad m) => Parsing (IdentityT m) where
   try = IdentityT . try . runIdentityT
+  {-# INLINE try #-}
   IdentityT m <?> l = IdentityT (m <?> l)
+  {-# INLINE (<?>) #-}
   skipMany = IdentityT . skipMany . runIdentityT
+  {-# INLINE skipMany #-}
   lookAhead = IdentityT . lookAhead . runIdentityT
+  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
+  {-# INLINE unexpected #-}
   eof = lift eof
+  {-# INLINE eof #-}

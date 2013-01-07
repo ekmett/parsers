@@ -59,6 +59,15 @@ module Text.Parser.Token
                         --    IdentifierStyle m -> IdentifierStyle (t m)
   , ident           -- :: TokenParsing m => IdentifierStyle m -> m String
   , reserve         -- :: TokenParsing m => IdentifierStyle m -> String -> m ()
+  -- ** Lenses and Traversals
+  , styleName
+  , styleStart
+  , styleLetter
+  , styleChars
+  , styleReserved
+  , styleHighlight
+  , styleReservedHighlight
+  , styleHighlights
   ) where
 
 import Control.Applicative
@@ -73,6 +82,7 @@ import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
 import Data.Char
+import Data.Functor.Identity
 import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
 import Data.List (foldl')
@@ -261,102 +271,195 @@ class CharParsing m => TokenParsing m where
   -- comments as white space as well.
   someSpace :: m ()
   someSpace = skipSome (satisfy isSpace)
+  {-# INLINE someSpace #-}
 
   -- | Called when we enter a nested pair of symbols.
   -- Overloadable to enable disabling layout
   nesting :: m a -> m a
   nesting = id
+  {-# INLINE nesting #-}
 
   -- | The token parser |semi| parses the character \';\' and skips
   -- any trailing white space. Returns the character \';\'. Overloadable to
   -- permit automatic semicolon insertion or Haskell-style layout.
   semi :: m Char
   semi = (satisfy (';'==) <?> ";") <* (someSpace <|> pure ())
+  {-# INLINE semi #-}
 
   -- | Tag a region of parsed text with a bit of semantic information.
   -- Most parsers won't use this, but it is indispensible for highlighters.
   highlight :: Highlight -> m a -> m a
   highlight _ a = a
+  {-# INLINE highlight #-}
 
 instance (TokenParsing m, MonadPlus m) => TokenParsing (Lazy.StateT s m) where
   nesting (Lazy.StateT m) = Lazy.StateT $ nesting . m
+  {-# INLINE nesting #-}
   someSpace = lift someSpace
+  {-# INLINE someSpace #-}
   semi      = lift semi
+  {-# INLINE semi #-}
   highlight h (Lazy.StateT m) = Lazy.StateT $ highlight h . m
+  {-# INLINE highlight #-}
 
 instance (TokenParsing m, MonadPlus m) => TokenParsing (Strict.StateT s m) where
   nesting (Strict.StateT m) = Strict.StateT $ nesting . m
+  {-# INLINE nesting #-}
   someSpace = lift someSpace
+  {-# INLINE someSpace #-}
   semi      = lift semi
+  {-# INLINE semi #-}
   highlight h (Strict.StateT m) = Strict.StateT $ highlight h . m
+  {-# INLINE highlight #-}
 
 instance (TokenParsing m, MonadPlus m) => TokenParsing (ReaderT e m) where
   nesting (ReaderT m) = ReaderT $ nesting . m
+  {-# INLINE nesting #-}
   someSpace = lift someSpace
+  {-# INLINE someSpace #-}
   semi      = lift semi
+  {-# INLINE semi #-}
   highlight h (ReaderT m) = ReaderT $ highlight h . m
+  {-# INLINE highlight #-}
 
 instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Strict.WriterT w m) where
   nesting (Strict.WriterT m) = Strict.WriterT $ nesting m
+  {-# INLINE nesting #-}
   someSpace = lift someSpace
+  {-# INLINE someSpace #-}
   semi      = lift semi
+  {-# INLINE semi #-}
   highlight h (Strict.WriterT m) = Strict.WriterT $ highlight h m
+  {-# INLINE highlight #-}
 
 instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Lazy.WriterT w m) where
   nesting (Lazy.WriterT m) = Lazy.WriterT $ nesting m
+  {-# INLINE nesting #-}
   someSpace = lift someSpace
+  {-# INLINE someSpace #-}
   semi      = lift semi
+  {-# INLINE semi #-}
   highlight h (Lazy.WriterT m) = Lazy.WriterT $ highlight h m
+  {-# INLINE highlight #-}
 
 instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Lazy.RWST r w s m) where
   nesting (Lazy.RWST m) = Lazy.RWST $ \r s -> nesting (m r s)
+  {-# INLINE nesting #-}
   someSpace = lift someSpace
+  {-# INLINE someSpace #-}
   semi      = lift semi
+  {-# INLINE semi #-}
   highlight h (Lazy.RWST m) = Lazy.RWST $ \r s -> highlight h (m r s)
+  {-# INLINE highlight #-}
 
 instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Strict.RWST r w s m) where
   nesting (Strict.RWST m) = Strict.RWST $ \r s -> nesting (m r s)
+  {-# INLINE nesting #-}
   someSpace = lift someSpace
+  {-# INLINE someSpace #-}
   semi      = lift semi
+  {-# INLINE semi #-}
   highlight h (Strict.RWST m) = Strict.RWST $ \r s -> highlight h (m r s)
+  {-# INLINE highlight #-}
 
 instance (TokenParsing m, MonadPlus m) => TokenParsing (IdentityT m) where
   nesting = IdentityT . nesting . runIdentityT
+  {-# INLINE nesting #-}
   someSpace = lift someSpace
+  {-# INLINE someSpace #-}
   semi      = lift semi
+  {-# INLINE semi #-}
   highlight h = IdentityT . highlight h . runIdentityT
+  {-# INLINE highlight #-}
 
 -- | Used to describe an input style for constructors, values, operators, etc.
 data IdentifierStyle m = IdentifierStyle
-  { styleName              :: String
-  , styleStart             :: m Char
-  , styleLetter            :: m Char
-  , styleReserved          :: HashSet String
-  , styleHighlight         :: Highlight
-  , styleReservedHighlight :: Highlight
+  { _styleName              :: String
+  , _styleStart             :: m Char
+  , _styleLetter            :: m Char
+  , _styleReserved          :: HashSet String
+  , _styleHighlight         :: Highlight
+  , _styleReservedHighlight :: Highlight
   }
 
+-- | This lens can be used to update the name for this style of identifier.
+--
+-- @'styleName' :: Lens' ('IdentifierStyle' m) 'String'@
+styleName :: Functor f => (String -> f String) -> IdentifierStyle m -> f (IdentifierStyle m)
+styleName f is = (\n -> is { _styleName = n }) <$> f (_styleName is)
+{-# INLINE styleName #-}
+
+-- | This lens can be used to update the action used to recognize the first letter in an identifier.
+--
+-- @'styleStart' :: Lens' ('IdentifierStyle' m) (m 'Char')@
+styleStart :: Functor f => (m Char -> f (m Char)) -> IdentifierStyle m -> f (IdentifierStyle m)
+styleStart f is = (\n -> is { _styleStart = n }) <$> f (_styleStart is)
+{-# INLINE styleStart #-}
+
+-- | This lens can be used to update the action used to recognize subsequent letters in an identifier.
+--
+-- @'styleLetter' :: Lens' ('IdentifierStyle' m) (m 'Char')@
+styleLetter :: Functor f => (m Char -> f (m Char)) -> IdentifierStyle m -> f (IdentifierStyle m)
+styleLetter f is = (\n -> is { _styleLetter = n }) <$> f (_styleLetter is)
+{-# INLINE styleLetter #-}
+
+-- | This is a traversal of both actions in contained in an 'IdentifierStyle'.
+--
+-- @'styleChars' :: Traversal ('IdentifierStyle' m) ('IdentifierStyle' n) (m 'Char') (n 'Char')@
+styleChars :: Applicative f => (m Char -> f (n Char)) -> IdentifierStyle m -> f (IdentifierStyle n)
+styleChars f is = (\n m -> is { _styleStart = n, _styleLetter = m }) <$> f (_styleStart is) <*> f (_styleLetter is)
+{-# INLINE styleChars #-}
+
+-- | This is a lens that can be used to modify the reserved identifier set.
+--
+-- @'styleReserved' :: Lens' ('IdentifierStyle' m) ('HashSet' 'String')@
+styleReserved :: Functor f => (HashSet String -> f (HashSet String)) -> IdentifierStyle m -> f (IdentifierStyle m)
+styleReserved f is = (\n -> is { _styleReserved = n }) <$> f (_styleReserved is)
+{-# INLINE styleReserved #-}
+
+-- | This is a lens that can be used to modify the highlight used for this identifier set.
+--
+-- @'styleHighlight' :: Lens' ('IdentifierStyle' m) 'Highlight'@
+styleHighlight :: Functor f => (Highlight -> f Highlight) -> IdentifierStyle m -> f (IdentifierStyle m)
+styleHighlight f is = (\n -> is { _styleHighlight = n }) <$> f (_styleHighlight is)
+{-# INLINE styleHighlight #-}
+
+-- | This is a lens that can be used to modify the highlight used for reserved identifiers in this identifier set.
+--
+-- @'styleReservedHighlight' :: Lens' ('IdentifierStyle' m) 'Highlight'@
+styleReservedHighlight :: Functor f => (Highlight -> f Highlight) -> IdentifierStyle m -> f (IdentifierStyle m)
+styleReservedHighlight f is = (\n -> is { _styleReservedHighlight = n }) <$> f (_styleReservedHighlight is)
+{-# INLINE styleReservedHighlight #-}
+
+-- | This is a traversal that can be used to modify the highlights used for both non-reserved and reserved identifiers in this identifier set.
+--
+-- @'styleHighlights' :: Traversal' ('IdentifierStyle' m) 'Highlight'@
+styleHighlights :: Applicative f => (Highlight -> f Highlight) -> IdentifierStyle m -> f (IdentifierStyle m)
+styleHighlights f is = (\n m -> is { _styleHighlight = n, _styleReservedHighlight = m }) <$> f (_styleHighlight is) <*> f (_styleReservedHighlight is)
+{-# INLINE styleHighlights #-}
+
 -- | Lift an identifier style into a monad transformer
+--
+-- Using @over@ from the @lens@ package:
+--
+-- @'liftIdentifierStyle' = over 'styleChars' 'lift'@
 liftIdentifierStyle :: (MonadTrans t, Monad m) => IdentifierStyle m -> IdentifierStyle (t m)
-liftIdentifierStyle s =
-  s { styleStart  = lift (styleStart s)
-    , styleLetter = lift (styleLetter s)
-    }
+liftIdentifierStyle = runIdentity . styleChars (Identity . lift)
 {-# INLINE liftIdentifierStyle #-}
 
 -- | parse a reserved operator or identifier using a given style
 reserve :: (TokenParsing m, Monad m) => IdentifierStyle m -> String -> m ()
 reserve s name = token $ try $ do
-   _ <- highlight (styleReservedHighlight s) $ string name
-   notFollowedBy (styleLetter s) <?> "end of " ++ show name
+   _ <- highlight (_styleReservedHighlight s) $ string name
+   notFollowedBy (_styleLetter s) <?> "end of " ++ show name
 {-# INLINE reserve #-}
 
 -- | parse an non-reserved identifier or symbol
 ident :: (TokenParsing m, Monad m) => IdentifierStyle m -> m String
 ident s = token $ try $ do
-  name <- highlight (styleHighlight s)
-          ((:) <$> styleStart s <*> many (styleLetter s) <?> styleName s)
-  when (HashSet.member name (styleReserved s)) $ unexpected $ "reserved " ++ styleName s ++ " " ++ show name
+  name <- highlight (_styleHighlight s)
+          ((:) <$> _styleStart s <*> many (_styleLetter s) <?> _styleName s)
+  when (HashSet.member name (_styleReserved s)) $ unexpected $ "reserved " ++ _styleName s ++ " " ++ show name
   return name
 {-# INLINE ident #-}
 
@@ -518,12 +621,17 @@ newtype Unhighlighted m a = Unhighlighted { runUnhighlighted :: m a }
 
 instance MonadTrans Unhighlighted where
   lift = Unhighlighted
+  {-# INLINE lift #-}
 
 instance (TokenParsing m, MonadPlus m) => TokenParsing (Unhighlighted m) where
   nesting (Unhighlighted m) = Unhighlighted (nesting m)
+  {-# INLINE nesting #-}
   someSpace = lift someSpace
+  {-# INLINE someSpace #-}
   semi      = lift semi
+  {-# INLINE semi #-}
   highlight _ m = m
+  {-# INLINE highlight #-}
 
 -- | This is a parser transformer you can use to disable the automatic trailing
 -- space consumption of a Token parser.
@@ -532,9 +640,14 @@ newtype Unspaced m a = Unspaced { runUnspaced :: m a }
 
 instance MonadTrans Unspaced where
   lift = Unspaced
+  {-# INLINE lift #-}
 
 instance (TokenParsing m, MonadPlus m) => TokenParsing (Unspaced m) where
   nesting (Unspaced m) = Unspaced (nesting m)
+  {-# INLINE nesting #-}
   someSpace = empty
+  {-# INLINE someSpace #-}
   semi      = lift semi
+  {-# INLINE semi #-}
   highlight h (Unspaced m) = Unspaced (highlight h m)
+  {-# INLINE highlight #-}

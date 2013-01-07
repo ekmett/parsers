@@ -91,7 +91,7 @@ buildExpressionParser :: (Parsing m, Monad m)
                       -> m a
                       -> m a
 buildExpressionParser operators simpleExpr
-    = foldl (makeParser) simpleExpr operators
+    = foldl makeParser simpleExpr operators
     where
       makeParser term ops
         = let (rassoc,lassoc,nassoc,prefix,postfix) = foldr splitOp ([],[],[],[],[]) ops

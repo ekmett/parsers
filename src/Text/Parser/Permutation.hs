@@ -28,6 +28,7 @@ module Text.Parser.Permutation
     ) where
 
 import Control.Applicative
+import Data.Foldable (asum)
 
 infixl 1 <||>, <|?>
 infixl 2 <$$>, <$?>
@@ -119,7 +120,7 @@ instance Functor m => Functor (Branch m) where
 -- transform a permutation tree into a normal parser
 permute :: Alternative m => Permutation m a -> m a
 permute (Permutation def xs)
-  = foldr (<|>) empty (map branch xs ++ e)
+  = asum (map branch xs ++ e)
   where
     e = maybe [] (pure . pure) def
     branch (Branch perm p) = flip id <$> p <*> permute perm

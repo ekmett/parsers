@@ -47,7 +47,6 @@ module Text.Parser.Combinators
   , Parsing(..)
   ) where
 
-import Data.Traversable (sequenceA)
 import Control.Applicative
 import Control.Monad (MonadPlus(..))
 import Control.Monad.Trans.Class
@@ -59,13 +58,15 @@ import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
+import Data.Foldable (asum)
 import Data.Monoid
+import Data.Traversable (sequenceA)
 
 -- | @choice ps@ tries to apply the parsers in the list @ps@ in order,
 -- until one of them succeeds. Returns the value of the succeeding
 -- parser.
 choice :: Alternative m => [m a] -> m a
-choice = foldr (<|>) empty
+choice = asum
 {-# INLINE choice #-}
 
 -- | @option x p@ tries to apply parser @p@. If @p@ fails without

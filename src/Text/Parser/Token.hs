@@ -500,7 +500,7 @@ escapeCode = (charEsc <|> charNum <|> charAscii <|> charControl) <?> "escape cod
       <|> (char 'x' *> number 16 hexDigit)
   charEsc = choice $ parseEsc <$> escMap
   parseEsc (c,code) = code <$ char c
-  escMap = zip ("abfnrtv\\\"\'") ("\a\b\f\n\r\t\v\\\"\'")
+  escMap = zip "abfnrtv\\\"\'" "\a\b\f\n\r\t\v\\\"\'"
   charAscii = choice $ parseAscii <$> asciiMap
   parseAscii (asc,code) = try $ code <$ string asc
   asciiMap = zip (ascii3codes ++ ascii2codes) (ascii3 ++ ascii2)
@@ -510,12 +510,9 @@ escapeCode = (charEsc <|> charNum <|> charAscii <|> charControl) <?> "escape cod
   ascii3codes = ["NUL","SOH","STX","ETX","EOT","ENQ","ACK"
                 ,"BEL","DLE","DC1","DC2","DC3","DC4","NAK"
                 ,"SYN","ETB","CAN","SUB","ESC","DEL"]
-  ascii2, ascii3 :: [Char]
-  ascii2 = ['\BS','\HT','\LF','\VT','\FF','\CR','\SO','\SI'
-           ,'\EM','\FS','\GS','\RS','\US','\SP']
-  ascii3 = ['\NUL','\SOH','\STX','\ETX','\EOT','\ENQ','\ACK'
-           ,'\BEL','\DLE','\DC1','\DC2','\DC3','\DC4','\NAK'
-           ,'\SYN','\ETB','\CAN','\SUB','\ESC','\DEL']
+  ascii2, ascii3 :: String
+  ascii2 = "\BS\HT\LF\VT\FF\CR\SO\SI\EM\FS\GS\RS\US\SP"
+  ascii3 = "\NUL\SOH\STX\ETX\EOT\ENQ\ACK\BEL\DLE\DC1\DC2\DC3\DC4\NAK\SYN\ETB\CAN\SUB\ESC\DEL"
 
 -- | This parser parses a natural number (a positive whole
 -- number). Returns the value of the number. The number can be

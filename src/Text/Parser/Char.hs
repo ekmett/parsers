@@ -70,6 +70,7 @@ import Text.Parser.Combinators
 oneOf :: CharParsing m => [Char] -> m Char
 oneOf xs = oneOfSet (CharSet.fromList xs)
 {-# INLINE oneOf #-}
+{-# ANN oneOf "HLint: ignore Use String" #-}
 
 -- | As the dual of 'oneOf', @noneOf cs@ succeeds if the current
 -- character /not/ in the supplied list of characters @cs@. Returns the
@@ -79,6 +80,7 @@ oneOf xs = oneOfSet (CharSet.fromList xs)
 noneOf :: CharParsing m => [Char] -> m Char
 noneOf xs = noneOfSet (CharSet.fromList xs)
 {-# INLINE noneOf #-}
+{-# ANN noneOf "HLint: ignore Use String" #-}
 
 -- | @oneOfSet cs@ succeeds if the current character is in the supplied
 -- set of characters @cs@. Returns the parsed character. See also

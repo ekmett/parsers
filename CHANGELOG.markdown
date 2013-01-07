@@ -1,3 +1,7 @@
+0.4.1
+-----
+* Added `token` to `TokenParsing`.
+
 0.4
 -----
 * Updated build system

@@ -25,6 +25,7 @@ flag lib-Werror
   default: False
 
 library
+  default-language: Haskell2010
   exposed-modules:
     Text.Parser.Char
     Text.Parser.Combinators
@@ -54,6 +55,7 @@ library
 test-suite doctests
   type:    exitcode-stdio-1.0
   main-is: doctests.hs
+  default-language: Haskell2010
   build-depends:
     base,
     containers,

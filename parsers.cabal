@@ -1,6 +1,6 @@
 name:          parsers
 category:      Text, Parsing
-version:       0.4.1
+version:       0.5
 license:       BSD3
 cabal-version: >= 1.10
 license-file:  LICENSE
@@ -9,7 +9,7 @@ maintainer:    Edward A. Kmett <ekmett@gmail.com>
 stability:     experimental
 homepage:      http://github.com/ekmett/parsers/
 bug-reports:   http://github.com/ekmett/parsers/issues
-copyright:     Copyright (C) 2010-2012 Edward A. Kmett
+copyright:     Copyright (C) 2010-2013 Edward A. Kmett
 synopsis:      Parsing combinators
 description:   Parsing combinators
 build-type:    Custom
@@ -29,6 +29,7 @@ library
   exposed-modules:
     Text.Parser.Char
     Text.Parser.Combinators
+    Text.Parser.LookAhead
     Text.Parser.Permutation
     Text.Parser.Expression
     Text.Parser.Token

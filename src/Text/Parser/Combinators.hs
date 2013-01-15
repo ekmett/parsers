@@ -230,9 +230,6 @@ class Alternative m => Parsing m where
   skipSome p = p *> skipMany p
   {-# INLINE skipSome #-}
 
-  -- | @lookAhead p@ parses @p@ without consuming any input.
-  lookAhead :: m a -> m a
-
   -- | Used to emit an error on an unexpected token
   unexpected :: String -> m a
 #ifdef USE_DEFAULT_SIGNATURES
@@ -271,8 +268,6 @@ instance (Parsing m, MonadPlus m) => Parsing (Lazy.StateT s m) where
   {-# INLINE try #-}
   Lazy.StateT m <?> l = Lazy.StateT $ \s -> m s <?> l
   {-# INLINE (<?>) #-}
-  lookAhead (Lazy.StateT m) = Lazy.StateT $ lookAhead . m
-  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
   {-# INLINE unexpected #-}
   eof = lift eof
@@ -283,8 +278,6 @@ instance (Parsing m, MonadPlus m) => Parsing (Strict.StateT s m) where
   {-# INLINE try #-}
   Strict.StateT m <?> l = Strict.StateT $ \s -> m s <?> l
   {-# INLINE (<?>) #-}
-  lookAhead (Strict.StateT m) = Strict.StateT $ lookAhead . m
-  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
   {-# INLINE unexpected #-}
   eof = lift eof
@@ -297,8 +290,6 @@ instance (Parsing m, MonadPlus m) => Parsing (ReaderT e m) where
   {-# INLINE (<?>) #-}
   skipMany (ReaderT m) = ReaderT $ skipMany . m
   {-# INLINE skipMany #-}
-  lookAhead (ReaderT m) = ReaderT $ lookAhead . m
-  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
   {-# INLINE unexpected #-}
   eof = lift eof
@@ -309,8 +300,6 @@ instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Strict.WriterT w m) wher
   {-# INLINE try #-}
   Strict.WriterT m <?> l = Strict.WriterT (m <?> l)
   {-# INLINE (<?>) #-}
-  lookAhead (Strict.WriterT m) = Strict.WriterT $ lookAhead m
-  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
   {-# INLINE unexpected #-}
   eof = lift eof
@@ -321,8 +310,6 @@ instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Lazy.WriterT w m) where
   {-# INLINE try #-}
   Lazy.WriterT m <?> l = Lazy.WriterT (m <?> l)
   {-# INLINE (<?>) #-}
-  lookAhead (Lazy.WriterT m) = Lazy.WriterT $ lookAhead m
-  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
   {-# INLINE unexpected #-}
   eof = lift eof
@@ -333,8 +320,6 @@ instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Lazy.RWST r w s m) where
   {-# INLINE try #-}
   Lazy.RWST m <?> l = Lazy.RWST $ \r s -> m r s <?> l
   {-# INLINE (<?>) #-}
-  lookAhead (Lazy.RWST m) = Lazy.RWST $ \r s -> lookAhead (m r s)
-  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
   {-# INLINE unexpected #-}
   eof = lift eof
@@ -345,8 +330,6 @@ instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Strict.RWST r w s m) whe
   {-# INLINE try #-}
   Strict.RWST m <?> l = Strict.RWST $ \r s -> m r s <?> l
   {-# INLINE (<?>) #-}
-  lookAhead (Strict.RWST m) = Strict.RWST $ \r s -> lookAhead (m r s)
-  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
   {-# INLINE unexpected #-}
   eof = lift eof
@@ -359,8 +342,6 @@ instance (Parsing m, Monad m) => Parsing (IdentityT m) where
   {-# INLINE (<?>) #-}
   skipMany = IdentityT . skipMany . runIdentityT
   {-# INLINE skipMany #-}
-  lookAhead = IdentityT . lookAhead . runIdentityT
-  {-# INLINE lookAhead #-}
   unexpected = lift . unexpected
   {-# INLINE unexpected #-}
   eof = lift eof

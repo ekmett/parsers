@@ -579,7 +579,7 @@ natDouble
 zeroNumFloat
     = Left <$> (hexadecimal <|> octal)
   <|> decimalFloat
-  <|> pure 0 <**> fractFloat
+  <|> pure 0 <**> try fractFloat
   <|> pure (Left 0)
 decimalFloat = decimal <**> option Left (try fractFloat)
 

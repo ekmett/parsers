@@ -101,8 +101,7 @@ noneOfSet :: CharParsing m => CharSet -> m Char
 noneOfSet s = oneOfSet (CharSet.complement s)
 {-# INLINE noneOfSet #-}
 
--- | Skips /zero/ or more white space characters. See also 'skipMany' and
--- 'whiteSpace'.
+-- | Skips /zero/ or more white space characters. See also 'skipMany'.
 spaces :: CharParsing m => m ()
 spaces = skipMany space <?> "white space"
 {-# INLINE spaces #-}

@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Text.Parser.Expression</title><link href="ocean.css" rel="stylesheet" type="text/css" title="Ocean" /><script src="haddock-util.js" type="text/javascript"></script><script type="text/javascript">//<![CDATA[
+window.onload = function () {pageLoad();setSynopsis("mini_Text-Parser-Expression.html");};
+//]]>
+</script></head><body><div id="package-header"><ul class="links" id="page-menu"><li><a href="src/Text-Parser-Expression.html">Source</a></li><li><a href="index.html">Contents</a></li><li><a href="doc-index.html">Index</a></li></ul><p class="caption">parsers-0.5.2: Parsing combinators</p></div><div id="content"><div id="module-header"><table class="info"><tr><th>Portability</th><td>non-portable</td></tr><tr><th>Stability</th><td>experimental</td></tr><tr><th>Maintainer</th><td>ekmett@gmail.com</td></tr><tr><th>Safe Haskell</th><td>Safe-Infered</td></tr></table><p class="caption">Text.Parser.Expression</p></div><div id="description"><p class="caption">Description</p><div class="doc"><p>A helper module to parse &quot;expressions&quot;.
+ Builds a parser given a table of operators and associativities.
+</p></div></div><div id="synopsis"><p id="control.syn" class="caption expander" onclick="toggleSection('syn')">Synopsis</p><ul id="section.syn" class="hide" onclick="toggleSection('syn')"><li class="src short"><span class="keyword">data</span>  <a href="#t:Assoc">Assoc</a> <ul class="subs"><li>= <a href="#v:AssocNone">AssocNone</a>  </li><li>| <a href="#v:AssocLeft">AssocLeft</a>  </li><li>| <a href="#v:AssocRight">AssocRight</a>  </li></ul></li><li class="src short"><span class="keyword">data</span>  <a href="#t:Operator">Operator</a> m a<ul class="subs"><li>= <a href="#v:Infix">Infix</a> (m (a -&gt; a -&gt; a)) <a href="Text-Parser-Expression.html#t:Assoc">Assoc</a>  </li><li>| <a href="#v:Prefix">Prefix</a> (m (a -&gt; a))  </li><li>| <a href="#v:Postfix">Postfix</a> (m (a -&gt; a))  </li></ul></li><li class="src short"><span class="keyword">type</span> <a href="#t:OperatorTable">OperatorTable</a> m a = [[<a href="Text-Parser-Expression.html#t:Operator">Operator</a> m a]]</li><li class="src short"><a href="#v:buildExpressionParser">buildExpressionParser</a> :: (<a href="Text-Parser-Combinators.html#t:Parsing">Parsing</a> m, <a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/base-4.5.0.0/Control-Monad.html#t:Monad">Monad</a> m) =&gt; <a href="Text-Parser-Expression.html#t:OperatorTable">OperatorTable</a> m a -&gt; m a -&gt; m a</li></ul></div><div id="interface"><h1>Documentation</h1><div class="top"><p class="src"><span class="keyword">data</span>  <a name="t:Assoc" class="def">Assoc</a>  <a href="src/Text-Parser-Expression.html#Assoc" class="link">Source</a></p><div class="doc"><p>This data type specifies the associativity of operators: left, right
+ or none.
+</p></div><div class="subs constructors"><p class="caption">Constructors</p><table><tr><td class="src"><a name="v:AssocNone" class="def">AssocNone</a></td><td class="doc empty">&nbsp;</td></tr><tr><td class="src"><a name="v:AssocLeft" class="def">AssocLeft</a></td><td class="doc empty">&nbsp;</td></tr><tr><td class="src"><a name="v:AssocRight" class="def">AssocRight</a></td><td class="doc empty">&nbsp;</td></tr></table></div></div><div class="top"><p class="src"><span class="keyword">data</span>  <a name="t:Operator" class="def">Operator</a> m a <a href="src/Text-Parser-Expression.html#Operator" class="link">Source</a></p><div class="doc"><p>This data type specifies operators that work on values of type <code>a</code>.
+ An operator is either binary infix or unary prefix or postfix. A
+ binary operator has also an associated associativity.
+</p></div><div class="subs constructors"><p class="caption">Constructors</p><table><tr><td class="src"><a name="v:Infix" class="def">Infix</a> (m (a -&gt; a -&gt; a)) <a href="Text-Parser-Expression.html#t:Assoc">Assoc</a></td><td class="doc empty">&nbsp;</td></tr><tr><td class="src"><a name="v:Prefix" class="def">Prefix</a> (m (a -&gt; a))</td><td class="doc empty">&nbsp;</td></tr><tr><td class="src"><a name="v:Postfix" class="def">Postfix</a> (m (a -&gt; a))</td><td class="doc empty">&nbsp;</td></tr></table></div></div><div class="top"><p class="src"><span class="keyword">type</span> <a name="t:OperatorTable" class="def">OperatorTable</a> m a = [[<a href="Text-Parser-Expression.html#t:Operator">Operator</a> m a]]<a href="src/Text-Parser-Expression.html#OperatorTable" class="link">Source</a></p><div class="doc"><p>An <code>OperatorTable m a</code> is a list of <code>Operator m a</code>
+ lists. The list is ordered in descending
+ precedence. All operators in one list have the same precedence (but
+ may have a different associativity).
+</p></div></div><div class="top"><p class="src"><a name="v:buildExpressionParser" class="def">buildExpressionParser</a> :: (<a href="Text-Parser-Combinators.html#t:Parsing">Parsing</a> m, <a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/base-4.5.0.0/Control-Monad.html#t:Monad">Monad</a> m) =&gt; <a href="Text-Parser-Expression.html#t:OperatorTable">OperatorTable</a> m a -&gt; m a -&gt; m a<a href="src/Text-Parser-Expression.html#buildExpressionParser" class="link">Source</a></p><div class="doc"><p><code>buildExpressionParser table term</code> builds an expression parser for
+ terms <code>term</code> with operators from <code>table</code>, taking the associativity
+ and precedence specified in <code>table</code> into account. Prefix and postfix
+ operators of the same precedence can only occur once (i.e. <code>--2</code> is
+ not allowed if <code>-</code> is prefix negate). Prefix and postfix operators
+ of the same precedence associate to the left (i.e. if <code>++</code> is
+ postfix increment, than <code>-2++</code> equals <code>-1</code>, not <code>-3</code>).
+</p><p>The <code>buildExpressionParser</code> takes care of all the complexity
+ involved in building expression parser. Here is an example of an
+ expression parser that handles prefix signs, postfix increment and
+ basic arithmetic.
+</p><pre>  expr    = buildExpressionParser table term
+          &lt;?&gt; &quot;expression&quot;
+
+  term    =  parens expr
+          &lt;|&gt; natural
+          &lt;?&gt; &quot;simple expression&quot;
+
+  table   = [ [prefix &quot;-&quot; negate, prefix &quot;+&quot; id ]
+            , [postfix &quot;++&quot; (+1)]
+            , [binary &quot;*&quot; (*) AssocLeft, binary &quot;/&quot; (div) AssocLeft ]
+            , [binary &quot;+&quot; (+) AssocLeft, binary &quot;-&quot; (-)   AssocLeft ]
+            ]
+
+  binary  name fun assoc = Infix (fun &lt;* reservedOp name) assoc
+  prefix  name fun       = Prefix (fun &lt;* reservedOp name)
+  postfix name fun       = Postfix (fun &lt;* reservedOp name)
+</pre></div></div></div></div><div id="footer"><p>Produced by <a href="http://www.haskell.org/haddock/">Haddock</a> version 2.10.0</p></div></body></html>

@@ -1,3 +1,7 @@
+0.5.2
+-----
+* Bugfix in `commaSep1`.
+
 0.5.1
 -----
 * Taught zeroNumFloat about `0.`.

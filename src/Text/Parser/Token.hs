@@ -245,7 +245,7 @@ commaSep p = sepBy p comma
 -- @p@ separated by 'comma'. Returns a list of values returned
 -- by @p@.
 commaSep1 :: TokenParsing m => m a -> m [a]
-commaSep1 p = sepBy p comma
+commaSep1 p = sepBy1 p comma
 {-# INLINE commaSep1 #-}
 
 -- | Additional functionality that is needed to tokenize input while ignoring whitespace.

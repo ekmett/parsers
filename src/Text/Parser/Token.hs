@@ -24,6 +24,7 @@ module Text.Parser.Token
     whiteSpace      -- :: TokenParsing m => m ()
   , charLiteral     -- :: TokenParsing m => m Char
   , stringLiteral   -- :: TokenParsing m => m String
+  , stringLiteral'  -- :: TokenParsing m => m String
   , natural         -- :: TokenParsing m => m Integer
   , integer         -- :: TokenParsing m => m Integer
   , double          -- :: TokenParsing m => m Double
@@ -130,6 +131,26 @@ stringLiteral = token (highlight StringLiteral lit) where
   escapeEmpty = char '&'
   escapeGap = skipSome space *> (char '\\' <?> "end of string gap")
 {-# INLINE stringLiteral #-}
+
+-- | This token parser behaves as 'stringLiteral', but for single-quoted
+-- strings.
+stringLiteral' :: TokenParsing m => m String
+stringLiteral' = token (highlight StringLiteral lit) where
+  lit = Prelude.foldr (maybe id (:)) ""
+    <$> between (char '\'') (char '\'' <?> "end of string") (many stringChar)
+    <?> "string"
+  stringChar = Just <$> stringLetter
+           <|> stringEscape
+       <?> "string character"
+  stringLetter    = satisfy (\c -> (c /= '\'') && (c /= '\\') && (c > '\026'))
+
+  stringEscape = highlight EscapeCode $ char '\\' *> esc where
+    esc = Nothing <$ escapeGap
+      <|> Nothing <$ escapeEmpty
+      <|> Just <$> escapeCode
+  escapeEmpty = char '&'
+  escapeGap = skipSome space *> (char '\\' <?> "end of string gap")
+{-# INLINE stringLiteral' #-}
 
 -- | This token parser parses a natural number (a positive whole
 -- number). Returns the value of the number. The number can be

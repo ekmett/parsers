@@ -28,6 +28,7 @@ module Text.Parser.Token
   , integer         -- :: TokenParsing m => m Integer
   , double          -- :: TokenParsing m => m Double
   , naturalOrDouble -- :: TokenParsing m => m (Either Integer Double)
+  , integerOrDouble -- :: TokenParsing m => m (Either Integer Double)
   , symbol          -- :: TokenParsing m => String -> m String
   , symbolic        -- :: TokenParsing m => Char -> m Char
   , parens          -- :: TokenParsing m => m a -> m a
@@ -167,6 +168,15 @@ double = token (highlight Number floating <?> "double")
 naturalOrDouble :: TokenParsing m => m (Either Integer Double)
 naturalOrDouble = token (highlight Number natDouble <?> "number")
 {-# INLINE naturalOrDouble #-}
+
+-- | This token parser is like 'naturalOrDouble', but handles
+-- leading @-@ or @+@.
+integerOrDouble :: TokenParsing m => m (Either Integer Double)
+integerOrDouble = token (highlight Number iod <?> "number")
+  where iod = mneg <$> optional (oneOf "+-") <*> natDouble
+	mneg (Just '-') nd = either (Left . negate) (Right . negate) nd
+	mneg _          nd = nd
+{-# INLINE integerOrDouble #-}
 
 -- | Token parser @symbol s@ parses 'string' @s@ and skips
 -- trailing white space.

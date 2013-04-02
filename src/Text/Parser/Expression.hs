@@ -34,6 +34,7 @@ data Assoc
   = AssocNone
   | AssocLeft
   | AssocRight
+ deriving (Eq)
 
 -- | This data type specifies operators that work on values of type @a@.
 -- An operator is either binary infix or unary prefix or postfix. A

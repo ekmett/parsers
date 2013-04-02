@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Text.Parser.Expression
@@ -22,6 +23,8 @@ module Text.Parser.Expression
 
 import Control.Applicative
 import Text.Parser.Combinators
+import Data.Data hiding (Infix, Prefix)
+import Data.Ix
 
 -----------------------------------------------------------
 -- Assoc and OperatorTable
@@ -34,7 +37,7 @@ data Assoc
   = AssocNone
   | AssocLeft
   | AssocRight
- deriving (Eq)
+  deriving (Eq,Ord,Show,Read,Ix,Enum,Bounded,Data,Typeable)
 
 -- | This data type specifies operators that work on values of type @a@.
 -- An operator is either binary infix or unary prefix or postfix. A

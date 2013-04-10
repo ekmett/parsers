@@ -1,3 +1,8 @@
+0.6
+---
+* Disallowed nested comments in 'javaCommentStyle'
+* More derived instances
+
 0.5.2
 -----
 * Bugfix in `commaSep1`.

@@ -85,7 +85,7 @@ emptyCommentStyle   = CommentStyle "" "" "" True
 
 -- | Use java-style comments
 javaCommentStyle :: CommentStyle
-javaCommentStyle = CommentStyle "/*" "*/" "//" True
+javaCommentStyle = CommentStyle "/*" "*/" "//" False
 
 -- | Use haskell-style comments
 haskellCommentStyle :: CommentStyle

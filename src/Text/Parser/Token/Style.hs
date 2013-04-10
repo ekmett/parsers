@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Text.Parser.Token.Style
@@ -37,6 +38,7 @@ import Control.Applicative
 import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
 import Data.Monoid
+import Data.Data
 import Text.Parser.Combinators
 import Text.Parser.Char
 import Text.Parser.Token
@@ -49,7 +51,7 @@ data CommentStyle = CommentStyle
   , _commentEnd     :: String -- ^ String that ends a multiline comment
   , _commentLine    :: String -- ^ String that starts a single line comment
   , _commentNesting :: Bool   -- ^ Can we nest multiline comments?
-  }
+  } deriving (Eq,Ord,Show,Read,Data,Typeable)
 
 -- | This is a lens that can edit the string that starts a multiline comment.
 --

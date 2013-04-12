@@ -1,3 +1,8 @@
+0.7
+---
+* Added `Unlined` to support parsing solely within a line
+* Simplified `TokenParsing` instances
+
 0.6
 ---
 * Disallowed nested comments in 'javaCommentStyle'

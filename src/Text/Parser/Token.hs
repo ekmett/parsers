@@ -47,6 +47,7 @@ module Text.Parser.Token
   , TokenParsing(..)
   -- ** Token Parsing Transformers
   , Unspaced(..)
+  , Unlined(..)
   , Unhighlighted(..)
   -- ** /Non-Token/ Parsers
   , decimal       -- :: TokenParsing m => m Integer

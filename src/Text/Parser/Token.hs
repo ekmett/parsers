@@ -681,3 +681,18 @@ instance TokenParsing m => TokenParsing (Unspaced m) where
   {-# INLINE semi #-}
   highlight h (Unspaced m) = Unspaced (highlight h m)
   {-# INLINE highlight #-}
+
+-- | This is a parser transformer you can use to disable the automatic trailing
+-- newline (but not whitespace-in-general) consumption of a Token parser.
+newtype Unlined m a = Unlined { runUnlined :: m a }
+  deriving (Functor,Applicative,Alternative,Monad,MonadPlus,Parsing,CharParsing)
+
+instance TokenParsing m => TokenParsing (Unlined m) where
+  nesting (Unlined m) = Unlined (nesting m)
+  {-# INLINE nesting #-}
+  someSpace = skipMany (satisfy $ \c -> c /= '\n' && isSpace c)
+  {-# INLINE someSpace #-}
+  semi      = Unlined semi
+  {-# INLINE semi #-}
+  highlight h (Unlined m) = Unlined (highlight h m)
+  {-# INLINE highlight #-}

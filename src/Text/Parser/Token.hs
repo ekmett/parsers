@@ -653,12 +653,12 @@ instance MonadTrans Unhighlighted where
   lift = Unhighlighted
   {-# INLINE lift #-}
 
-instance (TokenParsing m, MonadPlus m) => TokenParsing (Unhighlighted m) where
+instance TokenParsing m => TokenParsing (Unhighlighted m) where
   nesting (Unhighlighted m) = Unhighlighted (nesting m)
   {-# INLINE nesting #-}
-  someSpace = lift someSpace
+  someSpace = Unhighlighted someSpace
   {-# INLINE someSpace #-}
-  semi      = lift semi
+  semi      = Unhighlighted semi
   {-# INLINE semi #-}
   highlight _ m = m
   {-# INLINE highlight #-}
@@ -672,12 +672,12 @@ instance MonadTrans Unspaced where
   lift = Unspaced
   {-# INLINE lift #-}
 
-instance (TokenParsing m, MonadPlus m) => TokenParsing (Unspaced m) where
+instance TokenParsing m => TokenParsing (Unspaced m) where
   nesting (Unspaced m) = Unspaced (nesting m)
   {-# INLINE nesting #-}
   someSpace = empty
   {-# INLINE someSpace #-}
-  semi      = lift semi
+  semi      = Unspaced semi
   {-# INLINE semi #-}
   highlight h (Unspaced m) = Unspaced (highlight h m)
   {-# INLINE highlight #-}

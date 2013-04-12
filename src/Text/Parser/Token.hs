@@ -13,9 +13,9 @@
 --
 -- Parsers that comprehend whitespace and identifier styles
 --
--- > idStyle    = haskellIdentifierStyle { styleReserved = ... }
--- > identifier = ident haskellIdentifierStyle
--- > reserved   = reserve haskellIdentifierStyle
+-- > idStyle    = haskellIdents { styleReserved = ... }
+-- > identifier = ident idStyle
+-- > reserved   = reserve idStyle
 --
 -----------------------------------------------------------------------------
 module Text.Parser.Token

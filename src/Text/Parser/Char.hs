@@ -60,6 +60,7 @@ import qualified Data.CharSet as CharSet
 import Data.Foldable
 import qualified Data.IntSet as IntSet
 import Data.Monoid
+import Data.Text
 import Text.Parser.Combinators
 
 -- | @oneOf cs@ succeeds if the current character is in the supplied
@@ -203,6 +204,16 @@ class Parsing m => CharParsing m where
   string s = s <$ try (traverse_ char s) <?> show s
   {-# INLINE string #-}
 
+  -- | @text t@ parses a sequence of characters determined by the text @t@ Returns
+  -- the parsed text fragment (i.e. @t@).
+  --
+  -- Using @OverloadedStrings@:
+  --
+  -- >  divOrMod    =   text "div"
+  -- >              <|> text "mod"
+  text :: Text -> m Text
+  text t = t <$ string (unpack t)
+  {-# INLINE text #-}
 
 instance (CharParsing m, MonadPlus m) => CharParsing (Lazy.StateT s m) where
   satisfy = lift . satisfy
@@ -215,6 +226,8 @@ instance (CharParsing m, MonadPlus m) => CharParsing (Lazy.StateT s m) where
   {-# INLINE anyChar #-}
   string  = lift . string
   {-# INLINE string #-}
+  text = lift . text
+  {-# INLINE text #-}
 
 instance (CharParsing m, MonadPlus m) => CharParsing (Strict.StateT s m) where
   satisfy = lift . satisfy
@@ -227,6 +240,8 @@ instance (CharParsing m, MonadPlus m) => CharParsing (Strict.StateT s m) where
   {-# INLINE anyChar #-}
   string  = lift . string
   {-# INLINE string #-}
+  text = lift . text
+  {-# INLINE text #-}
 
 instance (CharParsing m, MonadPlus m) => CharParsing (ReaderT e m) where
   satisfy = lift . satisfy
@@ -239,6 +254,8 @@ instance (CharParsing m, MonadPlus m) => CharParsing (ReaderT e m) where
   {-# INLINE anyChar #-}
   string  = lift . string
   {-# INLINE string #-}
+  text = lift . text
+  {-# INLINE text #-}
 
 instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Strict.WriterT w m) where
   satisfy = lift . satisfy
@@ -251,6 +268,8 @@ instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Strict.WriterT w
   {-# INLINE anyChar #-}
   string  = lift . string
   {-# INLINE string #-}
+  text = lift . text
+  {-# INLINE text #-}
 
 instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Lazy.WriterT w m) where
   satisfy = lift . satisfy
@@ -263,6 +282,8 @@ instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Lazy.WriterT w m
   {-# INLINE anyChar #-}
   string  = lift . string
   {-# INLINE string #-}
+  text = lift . text
+  {-# INLINE text #-}
 
 instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Lazy.RWST r w s m) where
   satisfy = lift . satisfy
@@ -275,6 +296,8 @@ instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Lazy.RWST r w s 
   {-# INLINE anyChar #-}
   string  = lift . string
   {-# INLINE string #-}
+  text = lift . text
+  {-# INLINE text #-}
 
 instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Strict.RWST r w s m) where
   satisfy = lift . satisfy
@@ -287,6 +310,8 @@ instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Strict.RWST r w 
   {-# INLINE anyChar #-}
   string  = lift . string
   {-# INLINE string #-}
+  text = lift . text
+  {-# INLINE text #-}
 
 instance (CharParsing m, MonadPlus m) => CharParsing (IdentityT m) where
   satisfy = lift . satisfy
@@ -299,3 +324,5 @@ instance (CharParsing m, MonadPlus m) => CharParsing (IdentityT m) where
   {-# INLINE anyChar #-}
   string  = lift . string
   {-# INLINE string #-}
+  text = lift . text
+  {-# INLINE text #-}

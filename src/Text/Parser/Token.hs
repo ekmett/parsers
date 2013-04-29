@@ -25,12 +25,15 @@ module Text.Parser.Token
   , charLiteral     -- :: TokenParsing m => m Char
   , stringLiteral   -- :: TokenParsing m => m String
   , stringLiteral'  -- :: TokenParsing m => m String
+  , textLiteral     -- :: TokenParsing m => m Text
+  , textLiteral'    -- :: TokenParsing m => m Text
   , natural         -- :: TokenParsing m => m Integer
   , integer         -- :: TokenParsing m => m Integer
   , double          -- :: TokenParsing m => m Double
   , naturalOrDouble -- :: TokenParsing m => m (Either Integer Double)
   , integerOrDouble -- :: TokenParsing m => m (Either Integer Double)
   , symbol          -- :: TokenParsing m => String -> m String
+  , textSymbol      -- :: TokenParsing m => Text -> m Text
   , symbolic        -- :: TokenParsing m => Char -> m Char
   , parens          -- :: TokenParsing m => m a -> m a
   , braces          -- :: TokenParsing m => m a -> m a
@@ -89,6 +92,7 @@ import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
 import Data.List (foldl')
 import Data.Monoid
+import Data.Text hiding (empty,zip,foldl,foldl')
 import Text.Parser.Char
 import Text.Parser.Combinators
 import Text.Parser.Token.Highlight
@@ -133,6 +137,11 @@ stringLiteral = token (highlight StringLiteral lit) where
   escapeGap = skipSome space *> (char '\\' <?> "end of string gap")
 {-# INLINE stringLiteral #-}
 
+-- | A version of 'stringLiteral' that returns 'Text' instead.
+textLiteral :: TokenParsing m => m Text
+textLiteral = pack <$> stringLiteral
+{-# INLINE textLiteral #-}
+
 -- | This token parser behaves as 'stringLiteral', but for single-quoted
 -- strings.
 stringLiteral' :: TokenParsing m => m String
@@ -152,6 +161,11 @@ stringLiteral' = token (highlight StringLiteral lit) where
   escapeEmpty = char '&'
   escapeGap = skipSome space *> (char '\\' <?> "end of string gap")
 {-# INLINE stringLiteral' #-}
+
+-- | A version of 'stringLiteral'' that returns 'Text' instead.
+textLiteral' :: TokenParsing m => m Text
+textLiteral' = pack <$> stringLiteral'
+{-# INLINE textLiteral' #-}
 
 -- | This token parser parses a natural number (a positive whole
 -- number). Returns the value of the number. The number can be
@@ -205,6 +219,12 @@ integerOrDouble = token (highlight Number iod <?> "number")
 symbol :: TokenParsing m => String -> m String
 symbol name = token (highlight Symbol (string name))
 {-# INLINE symbol #-}
+
+-- | Token parser @textSymbol t@ parses 'text' @s@ and skips
+-- trailing white space.
+textSymbol :: TokenParsing m => Text -> m Text
+textSymbol name = token (highlight Symbol (text name))
+{-# INLINE textSymbol #-}
 
 -- | Token parser @symbolic s@ parses 'char' @s@ and skips
 -- trailing white space.

@@ -1,3 +1,7 @@
+0.7.1
+-----
+* Added support for `Text`-based parsing.
+
 0.7
 ---
 * Added `Unlined` to support parsing solely within a line

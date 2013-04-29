@@ -212,8 +212,8 @@ naturalOrDouble = token (highlight Number natDouble <?> "number")
 integerOrDouble :: TokenParsing m => m (Either Integer Double)
 integerOrDouble = token (highlight Number iod <?> "number")
   where iod = mneg <$> optional (oneOf "+-") <*> natDouble
-	mneg (Just '-') nd = either (Left . negate) (Right . negate) nd
-	mneg _          nd = nd
+        mneg (Just '-') nd = either (Left . negate) (Right . negate) nd
+        mneg _          nd = nd
 {-# INLINE integerOrDouble #-}
 
 -- | Token parser @symbol s@ parses 'string' @s@ and skips

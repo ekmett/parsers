@@ -179,18 +179,18 @@ class Parsing m => CharParsing m where
   -- /e.g./
   --
   -- @semiColon = 'char' ';'@
-  char :: CharParsing m => Char -> m Char
+  char :: Char -> m Char
   char c = satisfy (c ==) <?> show [c]
   {-# INLINE char #-}
 
   -- | @notChar c@ parses any single character other than @c@. Returns the parsed
   -- character.
-  notChar :: CharParsing m => Char -> m Char
+  notChar :: Char -> m Char
   notChar c = satisfy (c /=)
   {-# INLINE notChar #-}
 
   -- | This parser succeeds for any character. Returns the parsed character.
-  anyChar :: CharParsing m => m Char
+  anyChar :: m Char
   anyChar = satisfy (const True)
   {-# INLINE anyChar #-}
 
@@ -199,7 +199,7 @@ class Parsing m => CharParsing m where
   --
   -- >  divOrMod    =   string "div"
   -- >              <|> string "mod"
-  string :: CharParsing m => String -> m String
+  string :: String -> m String
   string s = s <$ try (traverse_ char s) <?> show s
   {-# INLINE string #-}
 

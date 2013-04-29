@@ -64,6 +64,8 @@ module Text.Parser.Token
                         --    IdentifierStyle m -> IdentifierStyle (t m)
   , ident           -- :: TokenParsing m => IdentifierStyle m -> m String
   , reserve         -- :: TokenParsing m => IdentifierStyle m -> String -> m ()
+  , identText       -- :: TokenParsing m => IdentifierStyle m -> m Text
+  , reserveText     -- :: TokenParsing m => IdentifierStyle m -> Text -> m ()
   -- ** Lenses and Traversals
   , styleName
   , styleStart
@@ -508,7 +510,14 @@ reserve s name = token $ try $ do
    notFollowedBy (_styleLetter s) <?> "end of " ++ show name
 {-# INLINE reserve #-}
 
--- | parse an non-reserved identifier or symbol
+-- | parse a reserved operator or identifier using a given style given 'Text'.
+reserveText :: (TokenParsing m, Monad m) => IdentifierStyle m -> Text -> m ()
+reserveText s name = token $ try $ do
+   _ <- highlight (_styleReservedHighlight s) $ text name
+   notFollowedBy (_styleLetter s) <?> "end of " ++ show name
+{-# INLINE reserveText #-}
+
+-- | Parse a non-reserved identifier or symbol
 ident :: (TokenParsing m, Monad m) => IdentifierStyle m -> m String
 ident s = token $ try $ do
   name <- highlight (_styleHighlight s)
@@ -517,8 +526,12 @@ ident s = token $ try $ do
   return name
 {-# INLINE ident #-}
 
--- * Utilities
+-- | Parse a non-reserved identifier or symbol (as 'Text').
+identText :: (TokenParsing m, Monad m) => IdentifierStyle m -> m Text
+identText s = pack <$> ident s
+{-# INLINE identText #-}
 
+-- * Utilities
 
 -- | This parser parses a character literal without the surrounding quotation marks.
 --

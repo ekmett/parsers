@@ -1,6 +1,6 @@
 0.8
 ---
-* Removed the need for `textLiteral` and `textLiteral'` by using `fromString`. Use `stringLiteral` and `stringLiteral'` instead.
+* Removed the need for `textLiteral`, `textLiteral'` and `identText` by using `fromString`. Use `stringLiteral`, `stringLiteral'`, and `ident` instead respectively.
 
 0.7.1
 -----

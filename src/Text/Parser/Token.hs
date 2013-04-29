@@ -58,11 +58,9 @@ module Text.Parser.Token
   , integer'      -- :: TokenParsing m => m Integer
   -- * Identifiers
   , IdentifierStyle(..)
-  , liftIdentifierStyle -- :: (MonadTrans t, Monad m) =>
-                        --    IdentifierStyle m -> IdentifierStyle (t m)
-  , ident           -- :: TokenParsing m => IdentifierStyle m -> m String
+  , liftIdentifierStyle -- :: (MonadTrans t, Monad m) => IdentifierStyle m -> IdentifierStyle (t m)
+  , ident           -- :: (TokenParsing m, IsString s) => IdentifierStyle m -> m s
   , reserve         -- :: TokenParsing m => IdentifierStyle m -> String -> m ()
-  , identText       -- :: TokenParsing m => IdentifierStyle m -> m Text
   , reserveText     -- :: TokenParsing m => IdentifierStyle m -> Text -> m ()
   -- ** Lenses and Traversals
   , styleName
@@ -507,18 +505,13 @@ reserveText s name = token $ try $ do
 {-# INLINE reserveText #-}
 
 -- | Parse a non-reserved identifier or symbol
-ident :: (TokenParsing m, Monad m) => IdentifierStyle m -> m String
-ident s = token $ try $ do
+ident :: (TokenParsing m, Monad m, IsString s) => IdentifierStyle m -> m s
+ident s = fmap fromString $ token $ try $ do
   name <- highlight (_styleHighlight s)
           ((:) <$> _styleStart s <*> many (_styleLetter s) <?> _styleName s)
   when (HashSet.member name (_styleReserved s)) $ unexpected $ "reserved " ++ _styleName s ++ " " ++ show name
   return name
 {-# INLINE ident #-}
-
--- | Parse a non-reserved identifier or symbol (as 'Text').
-identText :: (TokenParsing m, Monad m) => IdentifierStyle m -> m Text
-identText s = pack <$> ident s
-{-# INLINE identText #-}
 
 -- * Utilities
 

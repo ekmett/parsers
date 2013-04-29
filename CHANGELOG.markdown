@@ -1,3 +1,7 @@
+0.8
+---
+* Removed the need for `textLiteral` and `textLiteral'` by using `fromString`. Use `stringLiteral` and `stringLiteral'` instead.
+
 0.7.1
 -----
 * Added support for `Text`-based parsing.

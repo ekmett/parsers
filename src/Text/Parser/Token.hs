@@ -23,10 +23,8 @@ module Text.Parser.Token
   -- * Token Parsing
     whiteSpace      -- :: TokenParsing m => m ()
   , charLiteral     -- :: TokenParsing m => m Char
-  , stringLiteral   -- :: TokenParsing m => m String
-  , stringLiteral'  -- :: TokenParsing m => m String
-  , textLiteral     -- :: TokenParsing m => m Text
-  , textLiteral'    -- :: TokenParsing m => m Text
+  , stringLiteral   -- :: (TokenParsing m, IsString s) => m s
+  , stringLiteral'  -- :: (TokenParsing m, IsString s) => m s
   , natural         -- :: TokenParsing m => m Integer
   , integer         -- :: TokenParsing m => m Integer
   , double          -- :: TokenParsing m => m Double
@@ -94,6 +92,7 @@ import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
 import Data.List (foldl')
 import Data.Monoid
+import Data.String
 import Data.Text hiding (empty,zip,foldl,foldl')
 import Text.Parser.Char
 import Text.Parser.Combinators
@@ -121,8 +120,8 @@ charLiteral = token (highlight CharLiteral lit) where
 -- gaps. The literal string is parsed according to the grammar rules
 -- defined in the Haskell report (which matches most programming
 -- languages quite closely).
-stringLiteral :: TokenParsing m => m String
-stringLiteral = token (highlight StringLiteral lit) where
+stringLiteral :: (TokenParsing m, IsString s) => m s
+stringLiteral = fromString <$> token (highlight StringLiteral lit) where
   lit = Prelude.foldr (maybe id (:)) ""
     <$> between (char '"') (char '"' <?> "end of string") (many stringChar)
     <?> "string"
@@ -139,15 +138,10 @@ stringLiteral = token (highlight StringLiteral lit) where
   escapeGap = skipSome space *> (char '\\' <?> "end of string gap")
 {-# INLINE stringLiteral #-}
 
--- | A version of 'stringLiteral' that returns 'Text' instead.
-textLiteral :: TokenParsing m => m Text
-textLiteral = pack <$> stringLiteral
-{-# INLINE textLiteral #-}
-
 -- | This token parser behaves as 'stringLiteral', but for single-quoted
 -- strings.
-stringLiteral' :: TokenParsing m => m String
-stringLiteral' = token (highlight StringLiteral lit) where
+stringLiteral' :: (TokenParsing m, IsString s) => m s
+stringLiteral' = fromString <$> token (highlight StringLiteral lit) where
   lit = Prelude.foldr (maybe id (:)) ""
     <$> between (char '\'') (char '\'' <?> "end of string") (many stringChar)
     <?> "string"
@@ -163,11 +157,6 @@ stringLiteral' = token (highlight StringLiteral lit) where
   escapeEmpty = char '&'
   escapeGap = skipSome space *> (char '\\' <?> "end of string gap")
 {-# INLINE stringLiteral' #-}
-
--- | A version of 'stringLiteral'' that returns 'Text' instead.
-textLiteral' :: TokenParsing m => m Text
-textLiteral' = pack <$> stringLiteral'
-{-# INLINE textLiteral' #-}
 
 -- | This token parser parses a natural number (a positive whole
 -- number). Returns the value of the number. The number can be

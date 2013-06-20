@@ -1,3 +1,7 @@
+0.8.1
+-----
+* Text.Parser.Token.* is now Trustworthy
+
 0.8
 ---
 * Removed the need for `textLiteral`, `textLiteral'` and `identText` by using `fromString`. Use `stringLiteral`, `stringLiteral'`, and `ident` instead respectively.

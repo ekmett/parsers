@@ -26,6 +26,7 @@ module Text.Parser.Token.Style
   -- ** Common Comment Styles
   , emptyCommentStyle
   , javaCommentStyle
+  , scalaCommentStyle
   , haskellCommentStyle
   , buildSomeSpaceParser
   -- * Identifier Styles
@@ -88,6 +89,10 @@ emptyCommentStyle   = CommentStyle "" "" "" True
 -- | Use java-style comments
 javaCommentStyle :: CommentStyle
 javaCommentStyle = CommentStyle "/*" "*/" "//" False
+
+-- | Use scala-style comments
+scalaCommentStyle :: CommentStyle
+scalaCommentStyle = CommentStyle "/*" "*/" "//" True
 
 -- | Use haskell-style comments
 haskellCommentStyle :: CommentStyle

@@ -1,3 +1,7 @@
+0.8.2
+-----
+* Added `scalaCommentStyle`.
+
 0.8.1
 -----
 * Text.Parser.Token.* is now Trustworthy

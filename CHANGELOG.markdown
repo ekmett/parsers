@@ -1,3 +1,7 @@
+0.8.3
+-----
+* Fixed a _major_ performance regression in Text.Parser.Expression
+
 0.8.2
 -----
 * Added `scalaCommentStyle`.

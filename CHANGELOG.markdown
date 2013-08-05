@@ -1,3 +1,7 @@
+0.9
+---
+* `instance MonadTrans Unlined`
+
 0.8.3
 -----
 * Fixed a _major_ performance regression in Text.Parser.Expression

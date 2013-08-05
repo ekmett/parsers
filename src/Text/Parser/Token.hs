@@ -707,6 +707,10 @@ instance TokenParsing m => TokenParsing (Unspaced m) where
 newtype Unlined m a = Unlined { runUnlined :: m a }
   deriving (Functor,Applicative,Alternative,Monad,MonadPlus,Parsing,CharParsing)
 
+instance MonadTrans Unlined where
+  lift = Unlined
+  {-# INLINE lift #-}
+
 instance TokenParsing m => TokenParsing (Unlined m) where
   nesting (Unlined m) = Unlined (nesting m)
   {-# INLINE nesting #-}

@@ -37,6 +37,7 @@ import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
 import Data.Monoid
+import qualified Text.ParserCombinators.ReadP as ReadP
 import qualified Text.Parsec as Parsec
 import Text.Parser.Combinators
 
@@ -79,3 +80,7 @@ instance (LookAheadParsing m, Monad m) => LookAheadParsing (IdentityT m) where
 
 instance (Parsec.Stream s m t, Show t) => LookAheadParsing (Parsec.ParsecT s u m) where
   lookAhead = Parsec.lookAhead
+
+instance LookAheadParsing ReadP.ReadP where
+  lookAhead p = ReadP.look >>= \s ->
+                ReadP.choice $ map (return . fst) $ ReadP.readP_to_S p s

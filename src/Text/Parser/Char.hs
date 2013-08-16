@@ -62,6 +62,7 @@ import Data.Foldable
 import qualified Data.IntSet as IntSet
 import Data.Monoid
 import Data.Text
+import qualified Text.ParserCombinators.ReadP as ReadP
 import qualified Text.Parsec as Parsec
 import Text.Parser.Combinators
 
@@ -335,3 +336,10 @@ instance Parsec.Stream s m Char => CharParsing (Parsec.ParsecT s u m) where
   notChar c = Parsec.satisfy (/= c)
   anyChar   = Parsec.anyChar
   string    = Parsec.string
+
+instance CharParsing ReadP.ReadP where
+  satisfy   = ReadP.satisfy
+  char      = ReadP.char
+  notChar c = ReadP.satisfy (/= c)
+  anyChar   = ReadP.get
+  string    = ReadP.string

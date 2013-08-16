@@ -97,6 +97,7 @@ import Data.List (foldl')
 import Data.Monoid
 import Data.String
 import Data.Text hiding (empty,zip,foldl,foldl')
+import qualified Text.ParserCombinators.ReadP as ReadP
 import qualified Text.Parsec as Parsec
 import Text.Parser.Char
 import Text.Parser.Combinators
@@ -724,3 +725,5 @@ instance TokenParsing m => TokenParsing (Unlined m) where
   {-# INLINE highlight #-}
 
 instance Parsec.Stream s m Char => TokenParsing (Parsec.ParsecT s u m)
+
+instance TokenParsing ReadP.ReadP

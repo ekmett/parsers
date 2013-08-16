@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 #define USE_DEFAULT_SIGNATURES
@@ -61,6 +62,7 @@ import Control.Monad.Trans.Identity
 import Data.Foldable (asum)
 import Data.Monoid
 import Data.Traversable (sequenceA)
+import qualified Text.Parsec as Parsec
 
 -- | @choice ps@ tries to apply the parsers in the list @ps@ in order,
 -- until one of them succeeds. Returns the value of the succeeding
@@ -346,3 +348,12 @@ instance (Parsing m, Monad m) => Parsing (IdentityT m) where
   {-# INLINE unexpected #-}
   eof = lift eof
   {-# INLINE eof #-}
+
+instance (Parsec.Stream s m t, Show t) => Parsing (Parsec.ParsecT s u m) where
+  try           = Parsec.try
+  (<?>)         = (Parsec.<?>)
+  skipMany      = Parsec.skipMany
+  skipSome      = Parsec.skipMany1
+  unexpected    = Parsec.unexpected
+  eof           = Parsec.eof
+  notFollowedBy = Parsec.notFollowedBy

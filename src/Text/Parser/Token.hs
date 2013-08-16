@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fspec-constr -fspec-constr-count=8 #-}
 {-# LANGUAGE CPP #-}
@@ -96,6 +97,7 @@ import Data.List (foldl')
 import Data.Monoid
 import Data.String
 import Data.Text hiding (empty,zip,foldl,foldl')
+import qualified Text.Parsec as Parsec
 import Text.Parser.Char
 import Text.Parser.Combinators
 import Text.Parser.Token.Highlight
@@ -720,3 +722,5 @@ instance TokenParsing m => TokenParsing (Unlined m) where
   {-# INLINE semi #-}
   highlight h (Unlined m) = Unlined (highlight h m)
   {-# INLINE highlight #-}
+
+instance Parsec.Stream s m Char => TokenParsing (Parsec.ParsecT s u m)

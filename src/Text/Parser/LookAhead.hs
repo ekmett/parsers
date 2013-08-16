@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 #define USE_DEFAULT_SIGNATURES
@@ -36,6 +37,8 @@ import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
 import Data.Monoid
+import qualified Text.ParserCombinators.ReadP as ReadP
+import qualified Text.Parsec as Parsec
 import Text.Parser.Combinators
 
 -- | Additional functionality needed to describe parsers independent of input type.
@@ -74,3 +77,10 @@ instance (LookAheadParsing m, MonadPlus m, Monoid w) => LookAheadParsing (Strict
 instance (LookAheadParsing m, Monad m) => LookAheadParsing (IdentityT m) where
   lookAhead = IdentityT . lookAhead . runIdentityT
   {-# INLINE lookAhead #-}
+
+instance (Parsec.Stream s m t, Show t) => LookAheadParsing (Parsec.ParsecT s u m) where
+  lookAhead = Parsec.lookAhead
+
+instance LookAheadParsing ReadP.ReadP where
+  lookAhead p = ReadP.look >>= \s ->
+                ReadP.choice $ map (return . fst) $ ReadP.readP_to_S p s

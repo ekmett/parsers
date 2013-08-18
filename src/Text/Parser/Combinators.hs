@@ -9,6 +9,14 @@
 {-# LANGUAGE DefaultSignatures, TypeFamilies #-}
 #endif
 
+#if !MIN_VERSION_base(4,6,0)
+#define ORPHAN_ALTERNATIVE_READP
+#endif
+
+#ifdef ORPHAN_ALTERNATIVE_READP
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Text.Parser.Combinators
@@ -49,7 +57,7 @@ module Text.Parser.Combinators
   ) where
 
 import Control.Applicative
-import Control.Monad (MonadPlus(..))
+import Control.Monad (MonadPlus(..), ap)
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict
@@ -366,3 +374,13 @@ instance Parsing ReadP.ReadP where
   skipSome   = ReadP.skipMany1
   unexpected = const ReadP.pfail
   eof        = ReadP.eof
+
+#ifdef ORPHAN_ALTERNATIVE_READP
+instance Applicative ReadP.ReadP where
+  pure = return
+  (<*>) = ap
+
+instance Alternative ReadP.ReadP where
+  empty = mzero
+  (<|>) = mplus
+#endif

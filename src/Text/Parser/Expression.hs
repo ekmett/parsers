@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Text.Parser.Expression
@@ -90,7 +91,7 @@ type OperatorTable m a = [[Operator m a]]
 -- >  prefix  name fun       = Prefix (fun <* reservedOp name)
 -- >  postfix name fun       = Postfix (fun <* reservedOp name)
 
-buildExpressionParser :: (Parsing m, Monad m)
+buildExpressionParser :: forall m a. (Parsing m, Applicative m)
                       => OperatorTable m a
                       -> m a
                       -> m a
@@ -99,62 +100,44 @@ buildExpressionParser operators simpleExpr
     where
       makeParser term ops
         = let (rassoc,lassoc,nassoc,prefix,postfix) = foldr splitOp ([],[],[],[],[]) ops
-
               rassocOp   = choice rassoc
               lassocOp   = choice lassoc
               nassocOp   = choice nassoc
               prefixOp   = choice prefix  <?> ""
               postfixOp  = choice postfix <?> ""
 
-              ambiguous assoc op= try $ op *> fail ("ambiguous use of a " ++ assoc ++ " associative operator")
+              ambiguous assoc op= op *> empty <?> ("ambiguous use of a " ++ assoc ++ "-associative operator")
 
               ambiguousRight    = ambiguous "right" rassocOp
               ambiguousLeft     = ambiguous "left" lassocOp
               ambiguousNon      = ambiguous "non" nassocOp
 
-              termP      = do { pre <- prefixP
-                              ; x <- term
-                              ; post <- postfixP
-                              ; return (post (pre x))
-                              }
+              termP      = (prefixP <*> term) <**> postfixP
 
-              postfixP   = postfixOp <|> return id
+              postfixP   = postfixOp <|> pure id
 
-              prefixP    = prefixOp <|> return id
+              prefixP    = prefixOp <|> pure id
 
-              rassocP x  = do{ f <- rassocOp
-                             ; y <- termP >>= rassocP1
-                             ; return (f x y)
-                             }
-                           <|> ambiguousLeft
-                           <|> ambiguousNon
-                           -- <|> return x
+              rassocP, rassocP1, lassocP, lassocP1, nassocP :: m (a -> a)
 
-              rassocP1 x = rassocP x <|> return x
+              rassocP  = (flip <$> rassocOp <*> (termP <**> rassocP1)
+                          <|> ambiguousLeft
+                          <|> ambiguousNon)
 
-              lassocP x  = do{ f <- lassocOp
-                             ; y <- termP
-                             ; lassocP1 (f x y)
-                             }
-                           <|> ambiguousRight
-                           <|> ambiguousNon
-                           -- <|> return x
+              rassocP1 = rassocP <|> pure id
 
-              lassocP1 x = lassocP x <|> return x
+              lassocP  = ((flip <$> lassocOp <*> termP) <**> ((.) <$> lassocP1)
+                          <|> ambiguousRight
+                          <|> ambiguousNon)
 
-              nassocP x  = do{ f <- nassocOp
-                             ; y <- termP
-                             ;    ambiguousRight
+              lassocP1 = lassocP <|> pure id
+
+              nassocP = (flip <$> nassocOp <*> termP)
+                        <**> (ambiguousRight
                               <|> ambiguousLeft
                               <|> ambiguousNon
-                              <|> return (f x y)
-                             }
-                           -- <|> return x
-
-           in  do{ x <- termP
-                 ; rassocP x <|> lassocP  x <|> nassocP x <|> return x
-                   <?> "operator"
-                 }
+                              <|> pure id)
+           in termP <**> (rassocP <|> lassocP <|> nassocP <|> pure id) <?> "operator"
 
 
       splitOp (Infix op assoc) (rassoc,lassoc,nassoc,prefix,postfix)

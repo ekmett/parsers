@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fspec-constr -fspec-constr-count=8 #-}
 {-# LANGUAGE CPP #-}
@@ -99,6 +100,7 @@ import Data.String
 import Data.Text hiding (empty,zip,foldl,foldl')
 import qualified Text.ParserCombinators.ReadP as ReadP
 import qualified Text.Parsec as Parsec
+import qualified Data.Attoparsec.Types as Att
 import Text.Parser.Char
 import Text.Parser.Combinators
 import Text.Parser.Token.Highlight
@@ -755,5 +757,7 @@ instance TokenParsing m => TokenParsing (Unlined m) where
   {-# INLINE highlight #-}
 
 instance Parsec.Stream s m Char => TokenParsing (Parsec.ParsecT s u m)
+
+instance Att.Chunk t => TokenParsing (Att.Parser t)
 
 instance TokenParsing ReadP.ReadP

@@ -1,3 +1,7 @@
+0.10
+----
+* Added proper upper bounds for PVP compliance
+
 0.9
 ---
 * `instance MonadTrans Unlined`

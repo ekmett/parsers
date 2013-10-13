@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 #define USE_DEFAULT_SIGNATURES
@@ -6,6 +7,14 @@
 
 #ifdef USE_DEFAULT_SIGNATURES
 {-# LANGUAGE DefaultSignatures, TypeFamilies #-}
+#endif
+
+#if !MIN_VERSION_base(4,6,0)
+#define ORPHAN_ALTERNATIVE_READP
+#endif
+
+#ifdef ORPHAN_ALTERNATIVE_READP
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 #endif
 
 -----------------------------------------------------------------------------
@@ -48,7 +57,7 @@ module Text.Parser.Combinators
   ) where
 
 import Control.Applicative
-import Control.Monad (MonadPlus(..))
+import Control.Monad (MonadPlus(..), ap)
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict
@@ -61,6 +70,8 @@ import Control.Monad.Trans.Identity
 import Data.Foldable (asum)
 import Data.Monoid
 import Data.Traversable (sequenceA)
+import qualified Text.Parsec as Parsec
+import qualified Text.ParserCombinators.ReadP as ReadP
 
 -- | @choice ps@ tries to apply the parsers in the list @ps@ in order,
 -- until one of them succeeds. Returns the value of the succeeding
@@ -346,3 +357,30 @@ instance (Parsing m, Monad m) => Parsing (IdentityT m) where
   {-# INLINE unexpected #-}
   eof = lift eof
   {-# INLINE eof #-}
+
+instance (Parsec.Stream s m t, Show t) => Parsing (Parsec.ParsecT s u m) where
+  try           = Parsec.try
+  (<?>)         = (Parsec.<?>)
+  skipMany      = Parsec.skipMany
+  skipSome      = Parsec.skipMany1
+  unexpected    = Parsec.unexpected
+  eof           = Parsec.eof
+  notFollowedBy = Parsec.notFollowedBy
+
+instance Parsing ReadP.ReadP where
+  try        = id
+  (<?>)      = const
+  skipMany   = ReadP.skipMany
+  skipSome   = ReadP.skipMany1
+  unexpected = const ReadP.pfail
+  eof        = ReadP.eof
+
+#ifdef ORPHAN_ALTERNATIVE_READP
+instance Applicative ReadP.ReadP where
+  pure = return
+  (<*>) = ap
+
+instance Alternative ReadP.ReadP where
+  empty = mzero
+  (<|>) = mplus
+#endif

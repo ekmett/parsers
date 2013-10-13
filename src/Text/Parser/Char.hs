@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS_GHC -fspec-constr -fspec-constr-count=8 #-}
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
@@ -61,6 +62,8 @@ import Data.Foldable
 import qualified Data.IntSet as IntSet
 import Data.Monoid
 import Data.Text
+import qualified Text.ParserCombinators.ReadP as ReadP
+import qualified Text.Parsec as Parsec
 import Text.Parser.Combinators
 
 -- | @oneOf cs@ succeeds if the current character is in the supplied
@@ -326,3 +329,17 @@ instance (CharParsing m, MonadPlus m) => CharParsing (IdentityT m) where
   {-# INLINE string #-}
   text = lift . text
   {-# INLINE text #-}
+
+instance Parsec.Stream s m Char => CharParsing (Parsec.ParsecT s u m) where
+  satisfy   = Parsec.satisfy
+  char      = Parsec.char
+  notChar c = Parsec.satisfy (/= c)
+  anyChar   = Parsec.anyChar
+  string    = Parsec.string
+
+instance CharParsing ReadP.ReadP where
+  satisfy   = ReadP.satisfy
+  char      = ReadP.char
+  notChar c = ReadP.satisfy (/= c)
+  anyChar   = ReadP.get
+  string    = ReadP.string

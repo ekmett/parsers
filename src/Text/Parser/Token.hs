@@ -549,7 +549,7 @@ charLetter = satisfy (\c -> (c /= '\'') && (c /= '\\') && (c > '\026'))
 escapeCode :: TokenParsing m => m Char
 escapeCode = (charEsc <|> charNum <|> charAscii <|> charControl) <?> "escape code"
   where
-  charControl = (\c -> toEnum (fromEnum c - fromEnum 'A')) <$> (char '^' *> upper)
+  charControl = (\c -> toEnum (fromEnum c - fromEnum '@')) <$> (char '^' *> (upper <|> char '@'))
   charNum     = toEnum . fromInteger <$> num where
     num = decimal
       <|> (char 'o' *> number 8 octDigit)

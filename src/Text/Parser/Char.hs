@@ -24,21 +24,22 @@
 module Text.Parser.Char
   (
   -- * Combinators
-    oneOf       -- :: CharParsing m => [Char] -> m Char
-  , noneOf      -- :: CharParsing m => [Char] -> m Char
-  , oneOfSet    -- :: CharParsing m => CharSet -> m Char
-  , noneOfSet   -- :: CharParsing m => CharSet -> m Char
-  , spaces      -- :: CharParsing m => m ()
-  , space       -- :: CharParsing m => m Char
-  , newline     -- :: CharParsing m => m Char
-  , tab         -- :: CharParsing m => m Char
-  , upper       -- :: CharParsing m => m Char
-  , lower       -- :: CharParsing m => m Char
-  , alphaNum    -- :: CharParsing m => m Char
-  , letter      -- :: CharParsing m => m Char
-  , digit       -- :: CharParsing m => m Char
-  , hexDigit    -- :: CharParsing m => m Char
-  , octDigit    -- :: CharParsing m => m Char
+    oneOf        -- :: CharParsing m => [Char] -> m Char
+  , noneOf       -- :: CharParsing m => [Char] -> m Char
+  , oneOfSet     -- :: CharParsing m => CharSet -> m Char
+  , noneOfSet    -- :: CharParsing m => CharSet -> m Char
+  , spaces       -- :: CharParsing m => m ()
+  , space        -- :: CharParsing m => m Char
+  , newline      -- :: CharParsing m => m Char
+  , tab          -- :: CharParsing m => m Char
+  , upper        -- :: CharParsing m => m Char
+  , lower        -- :: CharParsing m => m Char
+  , alphaNum     -- :: CharParsing m => m Char
+  , letter       -- :: CharParsing m => m Char
+  , digit        -- :: CharParsing m => m Char
+  , hexDigit     -- :: CharParsing m => m Char
+  , octDigit     -- :: CharParsing m => m Char
+  , satisfyRange -- :: CharParsing m => Char -> Char -> m Char
   -- * Class
   , CharParsing(..)
   ) where
@@ -163,6 +164,10 @@ hexDigit = satisfy isHexDigit <?> "hexadecimal digit"
 octDigit :: CharParsing m => m Char
 octDigit = satisfy isOctDigit <?> "octal digit"
 {-# INLINE octDigit #-}
+
+satisfyRange :: CharParsing m => Char -> Char -> m Char
+satisfyRange a z = satisfy (\c -> c >= a && c <= z)
+{-# INLINE satisfyRange #-}
 
 -- | Additional functionality needed to parse character streams.
 class Parsing m => CharParsing m where

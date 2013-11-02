@@ -1,6 +1,8 @@
 0.10.1
 ------
 * Fixed an issue with the expression parser, where it didn't `try` hard enough.
+* Added `satisfyRange`
+* Fixed a longstanding issue with the char escapes that we inherited from parsec, where ^A and the like were returning 0 not 1.
 
 0.10
 ----

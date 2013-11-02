@@ -1,6 +1,11 @@
+0.10.1
+------
+* Fixed an issue with the expression parser, where it didn't `try` hard enough.
+
 0.10
 ----
 * Added proper upper bounds for PVP compliance
+* Switched to an applicative expression parser
 
 0.9
 ---

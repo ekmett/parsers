@@ -57,7 +57,11 @@ module Text.Parser.Combinators
   ) where
 
 import Control.Applicative
+#ifdef ORPHAN_ALTERNATIVE_READP
+import Control.Monad (MonadPlus(..), ap)
+#else
 import Control.Monad (MonadPlus(..))
+#endif
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict

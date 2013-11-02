@@ -1,3 +1,7 @@
+0.10.1.1
+--------
+* 0.10.1 accidentally prevented the orphan instances for ReadP from compiling. Fxed.
+
 0.10.1
 ------
 * Fixed an issue with the expression parser, where it didn't `try` hard enough.

@@ -1,3 +1,7 @@
+0.10.1.2
+--------
+* Updated to work with `text` 1.0
+
 0.10.1.1
 --------
 * 0.10.1 accidentally prevented the orphan instances for ReadP from compiling. Fxed.

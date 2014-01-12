@@ -1,6 +1,6 @@
 name:          parsers
 category:      Text, Parsing
-version:       0.10.1.2
+version:       0.10.2
 license:       BSD3
 cabal-version: >= 1.10
 license-file:  LICENSE

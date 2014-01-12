@@ -1,3 +1,7 @@
+0.10.2
+------
+* Documentation fixes
+
 0.10.1.2
 --------
 * Updated to work with `text` 1.0

@@ -127,20 +127,17 @@ tab :: CharParsing m => m Char
 tab = char '\t' <?> "tab"
 {-# INLINE tab #-}
 
--- | Parses an upper case letter (a character between \'A\' and \'Z\').
--- Returns the parsed character.
+-- | Parses an upper case letter. Returns the parsed character.
 upper :: CharParsing m => m Char
 upper = satisfy isUpper <?> "uppercase letter"
 {-# INLINE upper #-}
 
--- | Parses a lower case character (a character between \'a\' and \'z\').
--- Returns the parsed character.
+-- | Parses a lower case character. Returns the parsed character.
 lower :: CharParsing m => m Char
 lower = satisfy isLower <?> "lowercase letter"
 {-# INLINE lower #-}
 
--- | Parses a letter or digit (a character between \'0\' and \'9\').
--- Returns the parsed character.
+-- | Parses a letter or digit. Returns the parsed character.
 alphaNum :: CharParsing m => m Char
 alphaNum = satisfy isAlphaNum <?> "letter or digit"
 {-# INLINE alphaNum #-}

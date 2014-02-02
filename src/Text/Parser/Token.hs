@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fspec-constr -fspec-constr-count=8 #-}
 {-# LANGUAGE CPP #-}
@@ -670,13 +671,18 @@ octal = oneOf "oO" *> number 8 octDigit
 -- | This is a parser transformer you can use to disable syntax highlighting
 -- over a range of text you are parsing.
 newtype Unhighlighted m a = Unhighlighted { runUnhighlighted :: m a }
-  deriving (Functor,Applicative,Alternative,Monad,MonadPlus,Parsing,CharParsing)
+  deriving (Functor,Applicative,Alternative)
+
+deriving instance (Monad m) => Monad (Unhighlighted m)
+deriving instance (MonadPlus m) => MonadPlus (Unhighlighted m)
+deriving instance (Monad m, Parsing m) => Parsing (Unhighlighted m)
+deriving instance (Monad m, CharParsing m) => CharParsing (Unhighlighted m)
 
 instance MonadTrans Unhighlighted where
   lift = Unhighlighted
   {-# INLINE lift #-}
 
-instance TokenParsing m => TokenParsing (Unhighlighted m) where
+instance (Monad m, TokenParsing m) => TokenParsing (Unhighlighted m) where
   nesting (Unhighlighted m) = Unhighlighted (nesting m)
   {-# INLINE nesting #-}
   someSpace = Unhighlighted someSpace
@@ -689,13 +695,18 @@ instance TokenParsing m => TokenParsing (Unhighlighted m) where
 -- | This is a parser transformer you can use to disable the automatic trailing
 -- space consumption of a Token parser.
 newtype Unspaced m a = Unspaced { runUnspaced :: m a }
-  deriving (Functor,Applicative,Alternative,Monad,MonadPlus,Parsing,CharParsing)
+  deriving (Functor,Applicative,Alternative)
+
+deriving instance (Monad m) => Monad (Unspaced m)
+deriving instance (MonadPlus m) => MonadPlus (Unspaced m)
+deriving instance (Monad m, Parsing m) => Parsing (Unspaced m)
+deriving instance (Monad m, CharParsing m) => CharParsing (Unspaced m)
 
 instance MonadTrans Unspaced where
   lift = Unspaced
   {-# INLINE lift #-}
 
-instance TokenParsing m => TokenParsing (Unspaced m) where
+instance (Monad m, TokenParsing m) => TokenParsing (Unspaced m) where
   nesting (Unspaced m) = Unspaced (nesting m)
   {-# INLINE nesting #-}
   someSpace = empty
@@ -708,13 +719,18 @@ instance TokenParsing m => TokenParsing (Unspaced m) where
 -- | This is a parser transformer you can use to disable the automatic trailing
 -- newline (but not whitespace-in-general) consumption of a Token parser.
 newtype Unlined m a = Unlined { runUnlined :: m a }
-  deriving (Functor,Applicative,Alternative,Monad,MonadPlus,Parsing,CharParsing)
+  deriving (Functor,Applicative,Alternative)
+
+deriving instance (Monad m) => Monad (Unlined m)
+deriving instance (MonadPlus m) => MonadPlus (Unlined m)
+deriving instance (Monad m, Parsing m) => Parsing (Unlined m)
+deriving instance (Monad m, CharParsing m) => CharParsing (Unlined m)
 
 instance MonadTrans Unlined where
   lift = Unlined
   {-# INLINE lift #-}
 
-instance TokenParsing m => TokenParsing (Unlined m) where
+instance (Monad m, TokenParsing m) => TokenParsing (Unlined m) where
   nesting (Unlined m) = Unlined (nesting m)
   {-# INLINE nesting #-}
   someSpace = skipMany (satisfy $ \c -> c /= '\n' && isSpace c)

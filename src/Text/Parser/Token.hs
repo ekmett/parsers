@@ -670,7 +670,17 @@ octal = oneOf "oO" *> number 8 octDigit
 -- | This is a parser transformer you can use to disable syntax highlighting
 -- over a range of text you are parsing.
 newtype Unhighlighted m a = Unhighlighted { runUnhighlighted :: m a }
-  deriving (Functor,Applicative,Alternative,Monad,MonadPlus,Parsing,CharParsing)
+  deriving (Functor,Applicative,Alternative,Monad,MonadPlus,CharParsing)
+
+instance Parsing m => Parsing (Unhighlighted m) where
+  try (Unhighlighted m) = Unhighlighted $ try m
+  {-# INLINE try #-}
+  Unhighlighted m <?> l = Unhighlighted $ m <?> l
+  {-# INLINE (<?>) #-}
+  unexpected = Unhighlighted . unexpected
+  {-# INLINE unexpected #-}
+  eof = Unhighlighted eof
+  {-# INLINE eof #-}
 
 instance MonadTrans Unhighlighted where
   lift = Unhighlighted
@@ -689,7 +699,17 @@ instance TokenParsing m => TokenParsing (Unhighlighted m) where
 -- | This is a parser transformer you can use to disable the automatic trailing
 -- space consumption of a Token parser.
 newtype Unspaced m a = Unspaced { runUnspaced :: m a }
-  deriving (Functor,Applicative,Alternative,Monad,MonadPlus,Parsing,CharParsing)
+  deriving (Functor,Applicative,Alternative,Monad,MonadPlus,CharParsing)
+
+instance Parsing m => Parsing (Unspaced m) where
+  try (Unspaced m) = Unspaced $ try m
+  {-# INLINE try #-}
+  Unspaced m <?> l = Unspaced $ m <?> l
+  {-# INLINE (<?>) #-}
+  unexpected = Unspaced . unexpected
+  {-# INLINE unexpected #-}
+  eof = Unspaced eof
+  {-# INLINE eof #-}
 
 instance MonadTrans Unspaced where
   lift = Unspaced
@@ -708,7 +728,17 @@ instance TokenParsing m => TokenParsing (Unspaced m) where
 -- | This is a parser transformer you can use to disable the automatic trailing
 -- newline (but not whitespace-in-general) consumption of a Token parser.
 newtype Unlined m a = Unlined { runUnlined :: m a }
-  deriving (Functor,Applicative,Alternative,Monad,MonadPlus,Parsing,CharParsing)
+  deriving (Functor,Applicative,Alternative,Monad,MonadPlus,CharParsing)
+
+instance Parsing m => Parsing (Unlined m) where
+  try (Unlined m) = Unlined $ try m
+  {-# INLINE try #-}
+  Unlined m <?> l = Unlined $ m <?> l
+  {-# INLINE (<?>) #-}
+  unexpected = Unlined . unexpected
+  {-# INLINE unexpected #-}
+  eof = Unlined eof
+  {-# INLINE eof #-}
 
 instance MonadTrans Unlined where
   lift = Unlined

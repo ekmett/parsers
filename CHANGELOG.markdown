@@ -1,3 +1,7 @@
+0.10.3
+------
+* Compatibility with ghc 7.8 roles
+
 0.10.2
 ------
 * Documentation fixes

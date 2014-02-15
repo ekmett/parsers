@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fspec-constr -fspec-constr-count=8 #-}
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
@@ -65,6 +66,8 @@ import Data.Monoid
 import Data.Text
 import qualified Text.ParserCombinators.ReadP as ReadP
 import qualified Text.Parsec as Parsec
+import qualified Data.Attoparsec.Types as Att
+import qualified Data.Attoparsec.Combinator as Att
 import Text.Parser.Combinators
 
 -- | @oneOf cs@ succeeds if the current character is in the supplied
@@ -338,6 +341,11 @@ instance Parsec.Stream s m Char => CharParsing (Parsec.ParsecT s u m) where
   notChar c = Parsec.satisfy (/= c)
   anyChar   = Parsec.anyChar
   string    = Parsec.string
+
+instance Att.Chunk t => CharParsing (Att.Parser t) where
+  satisfy p = fmap e2c $ Att.satisfyElem $ p . e2c
+    where e2c = Att.chunkElemToChar (undefined :: t)
+  {-# INLINE satisfy #-}
 
 instance CharParsing ReadP.ReadP where
   satisfy   = ReadP.satisfy

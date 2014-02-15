@@ -75,6 +75,8 @@ import Data.Foldable (asum)
 import Data.Monoid
 import Data.Traversable (sequenceA)
 import qualified Text.Parsec as Parsec
+import qualified Data.Attoparsec.Types as Att
+import qualified Data.Attoparsec.Combinator as Att
 import qualified Text.ParserCombinators.ReadP as ReadP
 
 -- | @choice ps@ tries to apply the parsers in the list @ps@ in order,
@@ -370,6 +372,14 @@ instance (Parsec.Stream s m t, Show t) => Parsing (Parsec.ParsecT s u m) where
   unexpected    = Parsec.unexpected
   eof           = Parsec.eof
   notFollowedBy = Parsec.notFollowedBy
+
+instance Att.Chunk t => Parsing (Att.Parser t) where
+  try             = Att.try
+  (<?>)           = (Att.<?>)
+  skipMany        = Att.skipMany
+  skipSome        = Att.skipMany1
+  unexpected      = fail
+  eof             = Att.endOfInput
 
 instance Parsing ReadP.ReadP where
   try        = id

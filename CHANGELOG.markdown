@@ -1,3 +1,7 @@
+0.11
+----
+* Mikhail Vorozhtsov refactored `attoparsec` to permit `parsers` instances. Instances added.
+
 0.10.3
 ------
 * Compatibility with ghc 7.8 roles

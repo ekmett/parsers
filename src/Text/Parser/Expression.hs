@@ -87,9 +87,9 @@ type OperatorTable m a = [[Operator m a]]
 -- >            , [binary "+" (+) AssocLeft, binary "-" (-)   AssocLeft ]
 -- >            ]
 -- >
--- >  binary  name fun assoc = Infix (fun <* reservedOp name) assoc
--- >  prefix  name fun       = Prefix (fun <* reservedOp name)
--- >  postfix name fun       = Postfix (fun <* reservedOp name)
+-- >  binary  name fun assoc = Infix (fun <$ reservedOp name) assoc
+-- >  prefix  name fun       = Prefix (fun <$ reservedOp name)
+-- >  postfix name fun       = Postfix (fun <$ reservedOp name)
 
 buildExpressionParser :: forall m a. (Parsing m, Applicative m)
                       => OperatorTable m a

@@ -1,3 +1,7 @@
+0.11.0.2
+--------
+* Allow `attoparsec` 0.12
+
 0.11
 ----
 * Mikhail Vorozhtsov refactored `attoparsec` to permit `parsers` instances. Instances added.

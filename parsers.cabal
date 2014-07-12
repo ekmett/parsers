@@ -63,10 +63,30 @@ test-suite doctests
   default-language: Haskell2010
   build-depends:
     base,
+    bytestring,
     containers,
     directory >= 1.0,
     doctest >= 0.9.1,
-    filepath
+    filepath,
+    QuickCheck,
+    quickcheck-instances
+  ghc-options: -Wall -threaded
+  if impl(ghc<7.6.1)
+    ghc-options: -Werror
+  hs-source-dirs: tests
+
+test-suite quickcheck
+  type:    exitcode-stdio-1.0
+  main-is: QuickCheck.hs
+  default-language: Haskell2010
+  build-depends:
+    attoparsec,
+    base == 4.*,
+    bytestring,
+    parsec >= 3,
+    parsers,
+    QuickCheck,
+    quickcheck-instances
   ghc-options: -Wall -threaded
   if impl(ghc<7.6.1)
     ghc-options: -Werror

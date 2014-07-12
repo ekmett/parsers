@@ -344,7 +344,7 @@ class CharParsing m => TokenParsing m where
   token :: m a -> m a
   token p = p <* (someSpace <|> pure ())
 
-instance (TokenParsing m, MonadPlus m) => TokenParsing (Lazy.StateT s m) where
+instance (TokenParsing m, MonadPlus m, Show s) => TokenParsing (Lazy.StateT s m) where
   nesting (Lazy.StateT m) = Lazy.StateT $ nesting . m
   {-# INLINE nesting #-}
   someSpace = lift someSpace
@@ -354,7 +354,7 @@ instance (TokenParsing m, MonadPlus m) => TokenParsing (Lazy.StateT s m) where
   highlight h (Lazy.StateT m) = Lazy.StateT $ highlight h . m
   {-# INLINE highlight #-}
 
-instance (TokenParsing m, MonadPlus m) => TokenParsing (Strict.StateT s m) where
+instance (TokenParsing m, MonadPlus m, Show s) => TokenParsing (Strict.StateT s m) where
   nesting (Strict.StateT m) = Strict.StateT $ nesting . m
   {-# INLINE nesting #-}
   someSpace = lift someSpace
@@ -374,7 +374,7 @@ instance (TokenParsing m, MonadPlus m) => TokenParsing (ReaderT e m) where
   highlight h (ReaderT m) = ReaderT $ highlight h . m
   {-# INLINE highlight #-}
 
-instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Strict.WriterT w m) where
+instance (TokenParsing m, MonadPlus m, Monoid w, Show w) => TokenParsing (Strict.WriterT w m) where
   nesting (Strict.WriterT m) = Strict.WriterT $ nesting m
   {-# INLINE nesting #-}
   someSpace = lift someSpace
@@ -384,7 +384,7 @@ instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Strict.WriterT
   highlight h (Strict.WriterT m) = Strict.WriterT $ highlight h m
   {-# INLINE highlight #-}
 
-instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Lazy.WriterT w m) where
+instance (TokenParsing m, MonadPlus m, Monoid w, Show w) => TokenParsing (Lazy.WriterT w m) where
   nesting (Lazy.WriterT m) = Lazy.WriterT $ nesting m
   {-# INLINE nesting #-}
   someSpace = lift someSpace
@@ -394,7 +394,7 @@ instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Lazy.WriterT w
   highlight h (Lazy.WriterT m) = Lazy.WriterT $ highlight h m
   {-# INLINE highlight #-}
 
-instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Lazy.RWST r w s m) where
+instance (TokenParsing m, MonadPlus m, Monoid w, Show w, Show s) => TokenParsing (Lazy.RWST r w s m) where
   nesting (Lazy.RWST m) = Lazy.RWST $ \r s -> nesting (m r s)
   {-# INLINE nesting #-}
   someSpace = lift someSpace
@@ -404,7 +404,7 @@ instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Lazy.RWST r w 
   highlight h (Lazy.RWST m) = Lazy.RWST $ \r s -> highlight h (m r s)
   {-# INLINE highlight #-}
 
-instance (TokenParsing m, MonadPlus m, Monoid w) => TokenParsing (Strict.RWST r w s m) where
+instance (TokenParsing m, MonadPlus m, Monoid w, Show w, Show s) => TokenParsing (Strict.RWST r w s m) where
   nesting (Strict.RWST m) = Strict.RWST $ \r s -> nesting (m r s)
   {-# INLINE nesting #-}
   someSpace = lift someSpace
@@ -683,6 +683,9 @@ instance Parsing m => Parsing (Unhighlighted m) where
   {-# INLINE unexpected #-}
   eof = Unhighlighted eof
   {-# INLINE eof #-}
+  notFollowedBy (Unhighlighted m) = Unhighlighted $ notFollowedBy m
+  {-# INLINE notFollowedBy #-}
+
 
 instance MonadTrans Unhighlighted where
   lift = Unhighlighted
@@ -712,6 +715,8 @@ instance Parsing m => Parsing (Unspaced m) where
   {-# INLINE unexpected #-}
   eof = Unspaced eof
   {-# INLINE eof #-}
+  notFollowedBy (Unspaced m) = Unspaced $ notFollowedBy m
+  {-# INLINE notFollowedBy #-}
 
 instance MonadTrans Unspaced where
   lift = Unspaced
@@ -741,6 +746,8 @@ instance Parsing m => Parsing (Unlined m) where
   {-# INLINE unexpected #-}
   eof = Unlined eof
   {-# INLINE eof #-}
+  notFollowedBy (Unlined m) = Unlined $ notFollowedBy m
+  {-# INLINE notFollowedBy #-}
 
 instance MonadTrans Unlined where
   lift = Unlined

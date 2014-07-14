@@ -276,11 +276,9 @@ class Alternative m => Parsing m where
   -- behaviour as follows:
   --
   -- >  keywordLet  = try $ string "let" <* notFollowedBy alphaNum
-  notFollowedBy :: (Monad m, Show a) => m a -> m ()
-  notFollowedBy p = try ((try p >>= unexpected . show) <|> pure ())
-  {-# INLINE notFollowedBy #-}
+  notFollowedBy :: Show a => m a -> m ()
 
-instance (Parsing m, MonadPlus m) => Parsing (Lazy.StateT s m) where
+instance (Parsing m, MonadPlus m, Show s) => Parsing (Lazy.StateT s m) where
   try (Lazy.StateT m) = Lazy.StateT $ try . m
   {-# INLINE try #-}
   Lazy.StateT m <?> l = Lazy.StateT $ \s -> m s <?> l
@@ -289,8 +287,11 @@ instance (Parsing m, MonadPlus m) => Parsing (Lazy.StateT s m) where
   {-# INLINE unexpected #-}
   eof = lift eof
   {-# INLINE eof #-}
+  notFollowedBy (Lazy.StateT m) = Lazy.StateT
+    $ \s -> notFollowedBy (m s) >> return ((),s)
+  {-# INLINE notFollowedBy #-}
 
-instance (Parsing m, MonadPlus m) => Parsing (Strict.StateT s m) where
+instance (Parsing m, MonadPlus m, Show s) => Parsing (Strict.StateT s m) where
   try (Strict.StateT m) = Strict.StateT $ try . m
   {-# INLINE try #-}
   Strict.StateT m <?> l = Strict.StateT $ \s -> m s <?> l
@@ -299,6 +300,9 @@ instance (Parsing m, MonadPlus m) => Parsing (Strict.StateT s m) where
   {-# INLINE unexpected #-}
   eof = lift eof
   {-# INLINE eof #-}
+  notFollowedBy (Strict.StateT m) = Strict.StateT
+    $ \s -> notFollowedBy (m s) >> return ((),s)
+  {-# INLINE notFollowedBy #-}
 
 instance (Parsing m, MonadPlus m) => Parsing (ReaderT e m) where
   try (ReaderT m) = ReaderT $ try . m
@@ -311,8 +315,10 @@ instance (Parsing m, MonadPlus m) => Parsing (ReaderT e m) where
   {-# INLINE unexpected #-}
   eof = lift eof
   {-# INLINE eof #-}
+  notFollowedBy (ReaderT m) = ReaderT $ notFollowedBy . m
+  {-# INLINE notFollowedBy #-}
 
-instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Strict.WriterT w m) where
+instance (Parsing m, MonadPlus m, Monoid w, Show w) => Parsing (Strict.WriterT w m) where
   try (Strict.WriterT m) = Strict.WriterT $ try m
   {-# INLINE try #-}
   Strict.WriterT m <?> l = Strict.WriterT (m <?> l)
@@ -321,8 +327,11 @@ instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Strict.WriterT w m) wher
   {-# INLINE unexpected #-}
   eof = lift eof
   {-# INLINE eof #-}
+  notFollowedBy (Strict.WriterT m) = Strict.WriterT
+    $ notFollowedBy m >>= \x -> return (x, mempty)
+  {-# INLINE notFollowedBy #-}
 
-instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Lazy.WriterT w m) where
+instance (Parsing m, MonadPlus m, Monoid w, Show w) => Parsing (Lazy.WriterT w m) where
   try (Lazy.WriterT m) = Lazy.WriterT $ try m
   {-# INLINE try #-}
   Lazy.WriterT m <?> l = Lazy.WriterT (m <?> l)
@@ -331,8 +340,11 @@ instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Lazy.WriterT w m) where
   {-# INLINE unexpected #-}
   eof = lift eof
   {-# INLINE eof #-}
+  notFollowedBy (Lazy.WriterT m) = Lazy.WriterT
+    $ notFollowedBy m >>= \x -> return (x, mempty)
+  {-# INLINE notFollowedBy #-}
 
-instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Lazy.RWST r w s m) where
+instance (Parsing m, MonadPlus m, Monoid w, Show w, Show s) => Parsing (Lazy.RWST r w s m) where
   try (Lazy.RWST m) = Lazy.RWST $ \r s -> try (m r s)
   {-# INLINE try #-}
   Lazy.RWST m <?> l = Lazy.RWST $ \r s -> m r s <?> l
@@ -341,8 +353,11 @@ instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Lazy.RWST r w s m) where
   {-# INLINE unexpected #-}
   eof = lift eof
   {-# INLINE eof #-}
+  notFollowedBy (Lazy.RWST m) = Lazy.RWST
+    $ \r s -> notFollowedBy (m r s) >>= \x -> return (x, s, mempty)
+  {-# INLINE notFollowedBy #-}
 
-instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Strict.RWST r w s m) where
+instance (Parsing m, MonadPlus m, Monoid w, Show w, Show s) => Parsing (Strict.RWST r w s m) where
   try (Strict.RWST m) = Strict.RWST $ \r s -> try (m r s)
   {-# INLINE try #-}
   Strict.RWST m <?> l = Strict.RWST $ \r s -> m r s <?> l
@@ -351,6 +366,9 @@ instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Strict.RWST r w s m) whe
   {-# INLINE unexpected #-}
   eof = lift eof
   {-# INLINE eof #-}
+  notFollowedBy (Strict.RWST m) = Strict.RWST
+    $ \r s -> notFollowedBy (m r s) >>= \x -> return (x, s, mempty)
+  {-# INLINE notFollowedBy #-}
 
 instance (Parsing m, Monad m) => Parsing (IdentityT m) where
   try = IdentityT . try . runIdentityT
@@ -363,6 +381,8 @@ instance (Parsing m, Monad m) => Parsing (IdentityT m) where
   {-# INLINE unexpected #-}
   eof = lift eof
   {-# INLINE eof #-}
+  notFollowedBy (IdentityT m) = IdentityT $ notFollowedBy m
+  {-# INLINE notFollowedBy #-}
 
 instance (Parsec.Stream s m t, Show t) => Parsing (Parsec.ParsecT s u m) where
   try           = Parsec.try
@@ -380,6 +400,7 @@ instance Att.Chunk t => Parsing (Att.Parser t) where
   skipSome        = Att.skipMany1
   unexpected      = fail
   eof             = Att.endOfInput
+  notFollowedBy p = optional p >>= maybe (pure ()) (unexpected . show)
 
 instance Parsing ReadP.ReadP where
   try        = id
@@ -388,6 +409,8 @@ instance Parsing ReadP.ReadP where
   skipSome   = ReadP.skipMany1
   unexpected = const ReadP.pfail
   eof        = ReadP.eof
+  notFollowedBy p = ((Just <$> p) ReadP.<++ pure Nothing)
+    >>= maybe (pure ()) (unexpected . show)
 
 #ifdef ORPHAN_ALTERNATIVE_READP
 instance Applicative ReadP.ReadP where
@@ -398,3 +421,4 @@ instance Alternative ReadP.ReadP where
   empty = mzero
   (<|>) = mplus
 #endif
+

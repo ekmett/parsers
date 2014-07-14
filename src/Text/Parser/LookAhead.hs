@@ -46,11 +46,11 @@ class Parsing m => LookAheadParsing m where
   -- | @lookAhead p@ parses @p@ without consuming any input.
   lookAhead :: m a -> m a
 
-instance (LookAheadParsing m, MonadPlus m) => LookAheadParsing (Lazy.StateT s m) where
+instance (LookAheadParsing m, MonadPlus m, Show s) => LookAheadParsing (Lazy.StateT s m) where
   lookAhead (Lazy.StateT m) = Lazy.StateT $ lookAhead . m
   {-# INLINE lookAhead #-}
 
-instance (LookAheadParsing m, MonadPlus m) => LookAheadParsing (Strict.StateT s m) where
+instance (LookAheadParsing m, MonadPlus m, Show s) => LookAheadParsing (Strict.StateT s m) where
   lookAhead (Strict.StateT m) = Strict.StateT $ lookAhead . m
   {-# INLINE lookAhead #-}
 
@@ -58,19 +58,19 @@ instance (LookAheadParsing m, MonadPlus m) => LookAheadParsing (ReaderT e m) whe
   lookAhead (ReaderT m) = ReaderT $ lookAhead . m
   {-# INLINE lookAhead #-}
 
-instance (LookAheadParsing m, MonadPlus m, Monoid w) => LookAheadParsing (Strict.WriterT w m) where
+instance (LookAheadParsing m, MonadPlus m, Monoid w, Show w) => LookAheadParsing (Strict.WriterT w m) where
   lookAhead (Strict.WriterT m) = Strict.WriterT $ lookAhead m
   {-# INLINE lookAhead #-}
 
-instance (LookAheadParsing m, MonadPlus m, Monoid w) => LookAheadParsing (Lazy.WriterT w m) where
+instance (LookAheadParsing m, MonadPlus m, Monoid w, Show w) => LookAheadParsing (Lazy.WriterT w m) where
   lookAhead (Lazy.WriterT m) = Lazy.WriterT $ lookAhead m
   {-# INLINE lookAhead #-}
 
-instance (LookAheadParsing m, MonadPlus m, Monoid w) => LookAheadParsing (Lazy.RWST r w s m) where
+instance (LookAheadParsing m, MonadPlus m, Monoid w, Show w, Show s) => LookAheadParsing (Lazy.RWST r w s m) where
   lookAhead (Lazy.RWST m) = Lazy.RWST $ \r s -> lookAhead (m r s)
   {-# INLINE lookAhead #-}
 
-instance (LookAheadParsing m, MonadPlus m, Monoid w) => LookAheadParsing (Strict.RWST r w s m) where
+instance (LookAheadParsing m, MonadPlus m, Monoid w, Show w, Show s) => LookAheadParsing (Strict.RWST r w s m) where
   lookAhead (Strict.RWST m) = Strict.RWST $ \r s -> lookAhead (m r s)
   {-# INLINE lookAhead #-}
 

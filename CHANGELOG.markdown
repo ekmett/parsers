@@ -1,3 +1,7 @@
+0.12
+------
+* Fixed the behavior of `notFollowedBy`. This necessitated removing the default implementation, and therefore required a major version bump.
+
 0.11.0.2
 --------
 * Allow `attoparsec` 0.12

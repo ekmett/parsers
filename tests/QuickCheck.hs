@@ -24,6 +24,8 @@ import Text.Parser.Char
 import Text.Parser.Combinators
 import Text.ParserCombinators.ReadP (readP_to_S)
 
+import System.Exit
+
 -- -------------------------------------------------------------------------- --
 -- Run tests with different parser frameworks
 
@@ -50,7 +52,12 @@ instance Arbitrary (TestParser a) where
 -- Main
 
 main :: IO ()
-main = mapM_ quickCheck tests
+main = mapM quickCheckResult tests >>= \x -> case filter (not . passed) x of
+    [] -> exitSuccess
+    _ -> exitFailure
+  where
+    passed Success{} = True
+    passed _ = False
 
 -- -------------------------------------------------------------------------- --
 -- Tests

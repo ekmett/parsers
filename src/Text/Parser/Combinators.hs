@@ -278,7 +278,15 @@ class Alternative m => Parsing m where
   -- >  keywordLet  = try $ string "let" <* notFollowedBy alphaNum
   notFollowedBy :: Show a => m a -> m ()
 
-instance (Parsing m, MonadPlus m, Show s) => Parsing (Lazy.StateT s m) where
+notFollowedBy' :: Parsing m => (Int -> a -> ShowS) -> m a -> m ()
+notFollowedBy' k m = notFollowedBy (Shown k <$> m)
+
+data Shown a = Shown (Int -> a -> ShowS) a
+
+instance Show (Shown a) where
+  showsPrec d (Shown k a) = k d a
+
+instance (Parsing m, MonadPlus m) => Parsing (Lazy.StateT s m) where
   try (Lazy.StateT m) = Lazy.StateT $ try . m
   {-# INLINE try #-}
   Lazy.StateT m <?> l = Lazy.StateT $ \s -> m s <?> l
@@ -288,7 +296,7 @@ instance (Parsing m, MonadPlus m, Show s) => Parsing (Lazy.StateT s m) where
   eof = lift eof
   {-# INLINE eof #-}
   notFollowedBy (Lazy.StateT m) = Lazy.StateT
-    $ \s -> notFollowedBy (m s) >> return ((),s)
+    $ \s -> notFollowedBy' (\d -> showsPrec d . fst) (m s) >> return ((),s)
   {-# INLINE notFollowedBy #-}
 
 instance (Parsing m, MonadPlus m, Show s) => Parsing (Strict.StateT s m) where

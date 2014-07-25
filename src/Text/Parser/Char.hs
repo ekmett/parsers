@@ -223,7 +223,7 @@ class Parsing m => CharParsing m where
   text t = t <$ string (unpack t)
   {-# INLINE text #-}
 
-instance (CharParsing m, MonadPlus m, Show s) => CharParsing (Lazy.StateT s m) where
+instance (CharParsing m, MonadPlus m) => CharParsing (Lazy.StateT s m) where
   satisfy = lift . satisfy
   {-# INLINE satisfy #-}
   char    = lift . char

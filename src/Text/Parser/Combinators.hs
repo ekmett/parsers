@@ -278,13 +278,13 @@ class Alternative m => Parsing m where
   -- >  keywordLet  = try $ string "let" <* notFollowedBy alphaNum
   notFollowedBy :: Show a => m a -> m ()
 
-notFollowedBy' :: Parsing m => (Int -> a -> ShowS) -> m a -> m ()
-notFollowedBy' k m = notFollowedBy (Shown k <$> m)
+notFollowedByAs :: Show b => Parsing m => (a -> b) -> m a -> m ()
+notFollowedByAs k m = notFollowedBy (Shown k <$> m)
 
-data Shown a = Shown (Int -> a -> ShowS) a
+data Shown b a = Shown (a -> b) a
 
-instance Show (Shown a) where
-  showsPrec d (Shown k a) = k d a
+instance Show b => Show (Shown b a) where
+  showsPrec d (Shown k a) = showsPrec d (k a)
 
 instance (Parsing m, MonadPlus m) => Parsing (Lazy.StateT s m) where
   try (Lazy.StateT m) = Lazy.StateT $ try . m
@@ -296,10 +296,10 @@ instance (Parsing m, MonadPlus m) => Parsing (Lazy.StateT s m) where
   eof = lift eof
   {-# INLINE eof #-}
   notFollowedBy (Lazy.StateT m) = Lazy.StateT
-    $ \s -> notFollowedBy' (\d -> showsPrec d . fst) (m s) >> return ((),s)
+    $ \s -> notFollowedByAs fst (m s) >> return ((),s)
   {-# INLINE notFollowedBy #-}
 
-instance (Parsing m, MonadPlus m, Show s) => Parsing (Strict.StateT s m) where
+instance (Parsing m, MonadPlus m) => Parsing (Strict.StateT s m) where
   try (Strict.StateT m) = Strict.StateT $ try . m
   {-# INLINE try #-}
   Strict.StateT m <?> l = Strict.StateT $ \s -> m s <?> l
@@ -309,7 +309,7 @@ instance (Parsing m, MonadPlus m, Show s) => Parsing (Strict.StateT s m) where
   eof = lift eof
   {-# INLINE eof #-}
   notFollowedBy (Strict.StateT m) = Strict.StateT
-    $ \s -> notFollowedBy (m s) >> return ((),s)
+    $ \s -> notFollowedByAs fst (m s) >> return ((),s)
   {-# INLINE notFollowedBy #-}
 
 instance (Parsing m, MonadPlus m) => Parsing (ReaderT e m) where
@@ -326,7 +326,7 @@ instance (Parsing m, MonadPlus m) => Parsing (ReaderT e m) where
   notFollowedBy (ReaderT m) = ReaderT $ notFollowedBy . m
   {-# INLINE notFollowedBy #-}
 
-instance (Parsing m, MonadPlus m, Monoid w, Show w) => Parsing (Strict.WriterT w m) where
+instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Strict.WriterT w m) where
   try (Strict.WriterT m) = Strict.WriterT $ try m
   {-# INLINE try #-}
   Strict.WriterT m <?> l = Strict.WriterT (m <?> l)
@@ -336,10 +336,10 @@ instance (Parsing m, MonadPlus m, Monoid w, Show w) => Parsing (Strict.WriterT w
   eof = lift eof
   {-# INLINE eof #-}
   notFollowedBy (Strict.WriterT m) = Strict.WriterT
-    $ notFollowedBy m >>= \x -> return (x, mempty)
+    $ notFollowedByAs fst m >>= \x -> return (x, mempty)
   {-# INLINE notFollowedBy #-}
 
-instance (Parsing m, MonadPlus m, Monoid w, Show w) => Parsing (Lazy.WriterT w m) where
+instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Lazy.WriterT w m) where
   try (Lazy.WriterT m) = Lazy.WriterT $ try m
   {-# INLINE try #-}
   Lazy.WriterT m <?> l = Lazy.WriterT (m <?> l)
@@ -349,7 +349,7 @@ instance (Parsing m, MonadPlus m, Monoid w, Show w) => Parsing (Lazy.WriterT w m
   eof = lift eof
   {-# INLINE eof #-}
   notFollowedBy (Lazy.WriterT m) = Lazy.WriterT
-    $ notFollowedBy m >>= \x -> return (x, mempty)
+    $ notFollowedByAs fst m >>= \x -> return (x, mempty)
   {-# INLINE notFollowedBy #-}
 
 instance (Parsing m, MonadPlus m, Monoid w, Show w, Show s) => Parsing (Lazy.RWST r w s m) where

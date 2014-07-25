@@ -237,7 +237,7 @@ instance (CharParsing m, MonadPlus m) => CharParsing (Lazy.StateT s m) where
   text = lift . text
   {-# INLINE text #-}
 
-instance (CharParsing m, MonadPlus m, Show s) => CharParsing (Strict.StateT s m) where
+instance (CharParsing m, MonadPlus m) => CharParsing (Strict.StateT s m) where
   satisfy = lift . satisfy
   {-# INLINE satisfy #-}
   char    = lift . char
@@ -265,7 +265,7 @@ instance (CharParsing m, MonadPlus m) => CharParsing (ReaderT e m) where
   text = lift . text
   {-# INLINE text #-}
 
-instance (CharParsing m, MonadPlus m, Monoid w, Show w) => CharParsing (Strict.WriterT w m) where
+instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Strict.WriterT w m) where
   satisfy = lift . satisfy
   {-# INLINE satisfy #-}
   char    = lift . char
@@ -279,7 +279,7 @@ instance (CharParsing m, MonadPlus m, Monoid w, Show w) => CharParsing (Strict.W
   text = lift . text
   {-# INLINE text #-}
 
-instance (CharParsing m, MonadPlus m, Monoid w, Show w) => CharParsing (Lazy.WriterT w m) where
+instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Lazy.WriterT w m) where
   satisfy = lift . satisfy
   {-# INLINE satisfy #-}
   char    = lift . char
@@ -293,7 +293,7 @@ instance (CharParsing m, MonadPlus m, Monoid w, Show w) => CharParsing (Lazy.Wri
   text = lift . text
   {-# INLINE text #-}
 
-instance (CharParsing m, MonadPlus m, Monoid w, Show w, Show s) => CharParsing (Lazy.RWST r w s m) where
+instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Lazy.RWST r w s m) where
   satisfy = lift . satisfy
   {-# INLINE satisfy #-}
   char    = lift . char
@@ -307,7 +307,7 @@ instance (CharParsing m, MonadPlus m, Monoid w, Show w, Show s) => CharParsing (
   text = lift . text
   {-# INLINE text #-}
 
-instance (CharParsing m, MonadPlus m, Monoid w, Show w, Show s) => CharParsing (Strict.RWST r w s m) where
+instance (CharParsing m, MonadPlus m, Monoid w) => CharParsing (Strict.RWST r w s m) where
   satisfy = lift . satisfy
   {-# INLINE satisfy #-}
   char    = lift . char

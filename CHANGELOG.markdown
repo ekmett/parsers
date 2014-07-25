@@ -1,3 +1,7 @@
+0.12.1
+----
+* Fixed the fixed behavior of `notFollowedBy`, which was showing internal state. This had led to unnecessary constraints on internal state that are now removed.
+
 0.12
 ------
 * Fixed the behavior of `notFollowedBy`. This necessitated removing the default implementation, and therefore required a major version bump.

@@ -278,14 +278,6 @@ class Alternative m => Parsing m where
   -- >  keywordLet  = try $ string "let" <* notFollowedBy alphaNum
   notFollowedBy :: Show a => m a -> m ()
 
-notFollowedByAs :: Show b => Parsing m => (a -> b) -> m a -> m ()
-notFollowedByAs k m = notFollowedBy (Shown k <$> m)
-
-data Shown b a = Shown (a -> b) a
-
-instance Show b => Show (Shown b a) where
-  showsPrec d (Shown k a) = showsPrec d (k a)
-
 instance (Parsing m, MonadPlus m) => Parsing (Lazy.StateT s m) where
   try (Lazy.StateT m) = Lazy.StateT $ try . m
   {-# INLINE try #-}
@@ -296,7 +288,7 @@ instance (Parsing m, MonadPlus m) => Parsing (Lazy.StateT s m) where
   eof = lift eof
   {-# INLINE eof #-}
   notFollowedBy (Lazy.StateT m) = Lazy.StateT
-    $ \s -> notFollowedByAs fst (m s) >> return ((),s)
+    $ \s -> notFollowedBy (fst <$> m s) >> return ((),s)
   {-# INLINE notFollowedBy #-}
 
 instance (Parsing m, MonadPlus m) => Parsing (Strict.StateT s m) where
@@ -309,7 +301,7 @@ instance (Parsing m, MonadPlus m) => Parsing (Strict.StateT s m) where
   eof = lift eof
   {-# INLINE eof #-}
   notFollowedBy (Strict.StateT m) = Strict.StateT
-    $ \s -> notFollowedByAs fst (m s) >> return ((),s)
+    $ \s -> notFollowedBy (fst <$> m s) >> return ((),s)
   {-# INLINE notFollowedBy #-}
 
 instance (Parsing m, MonadPlus m) => Parsing (ReaderT e m) where
@@ -336,7 +328,7 @@ instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Strict.WriterT w m) wher
   eof = lift eof
   {-# INLINE eof #-}
   notFollowedBy (Strict.WriterT m) = Strict.WriterT
-    $ notFollowedByAs fst m >>= \x -> return (x, mempty)
+    $ notFollowedBy (fst <$> m) >>= \x -> return (x, mempty)
   {-# INLINE notFollowedBy #-}
 
 instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Lazy.WriterT w m) where
@@ -349,7 +341,7 @@ instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Lazy.WriterT w m) where
   eof = lift eof
   {-# INLINE eof #-}
   notFollowedBy (Lazy.WriterT m) = Lazy.WriterT
-    $ notFollowedByAs fst m >>= \x -> return (x, mempty)
+    $ notFollowedBy (fst <$> m) >>= \x -> return (x, mempty)
   {-# INLINE notFollowedBy #-}
 
 instance (Parsing m, MonadPlus m, Monoid w, Show w, Show s) => Parsing (Lazy.RWST r w s m) where

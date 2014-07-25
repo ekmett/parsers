@@ -344,7 +344,7 @@ instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Lazy.WriterT w m) where
     $ notFollowedBy (fst <$> m) >>= \x -> return (x, mempty)
   {-# INLINE notFollowedBy #-}
 
-instance (Parsing m, MonadPlus m, Monoid w, Show w, Show s) => Parsing (Lazy.RWST r w s m) where
+instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Lazy.RWST r w s m) where
   try (Lazy.RWST m) = Lazy.RWST $ \r s -> try (m r s)
   {-# INLINE try #-}
   Lazy.RWST m <?> l = Lazy.RWST $ \r s -> m r s <?> l
@@ -354,10 +354,10 @@ instance (Parsing m, MonadPlus m, Monoid w, Show w, Show s) => Parsing (Lazy.RWS
   eof = lift eof
   {-# INLINE eof #-}
   notFollowedBy (Lazy.RWST m) = Lazy.RWST
-    $ \r s -> notFollowedBy (m r s) >>= \x -> return (x, s, mempty)
+    $ \r s -> notFollowedBy ((\(a,_,_) -> a) <$> m r s) >>= \x -> return (x, s, mempty)
   {-# INLINE notFollowedBy #-}
 
-instance (Parsing m, MonadPlus m, Monoid w, Show w, Show s) => Parsing (Strict.RWST r w s m) where
+instance (Parsing m, MonadPlus m, Monoid w) => Parsing (Strict.RWST r w s m) where
   try (Strict.RWST m) = Strict.RWST $ \r s -> try (m r s)
   {-# INLINE try #-}
   Strict.RWST m <?> l = Strict.RWST $ \r s -> m r s <?> l
@@ -367,7 +367,7 @@ instance (Parsing m, MonadPlus m, Monoid w, Show w, Show s) => Parsing (Strict.R
   eof = lift eof
   {-# INLINE eof #-}
   notFollowedBy (Strict.RWST m) = Strict.RWST
-    $ \r s -> notFollowedBy (m r s) >>= \x -> return (x, s, mempty)
+    $ \r s -> notFollowedBy ((\(a,_,_) -> a) <$> m r s) >>= \x -> return (x, s, mempty)
   {-# INLINE notFollowedBy #-}
 
 instance (Parsing m, Monad m) => Parsing (IdentityT m) where

@@ -36,6 +36,9 @@ module Text.Parser.Token
   , double          -- :: TokenParsing m => m Double
   , naturalOrDouble -- :: TokenParsing m => m (Either Integer Double)
   , integerOrDouble -- :: TokenParsing m => m (Either Integer Double)
+  , scientific      -- :: TokenParsing m => m Scientific
+  , naturalOrScientific -- :: TokenParsing m => m (Either Integer Scientific)
+  , integerOrScientific -- :: TokenParsing m => m (Either Integer Scientific)
   , symbol          -- :: TokenParsing m => String -> m String
   , textSymbol      -- :: TokenParsing m => Text -> m Text
   , symbolic        -- :: TokenParsing m => Char -> m Char
@@ -96,6 +99,8 @@ import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
 import Data.List (foldl')
 import Data.Monoid
+import Data.Scientific ( Scientific )
+import qualified Data.Scientific as Sci
 import Data.String
 import Data.Text hiding (empty,zip,foldl,foldl')
 import qualified Text.ParserCombinators.ReadP as ReadP
@@ -192,7 +197,7 @@ integer = token (token (highlight Operator sgn <*> natural')) <?> "integer"
 -- of the number. The number is parsed according to the grammar rules
 -- defined in the Haskell report.
 double :: TokenParsing m => m Double
-double = token (highlight Number floating <?> "double")
+double = token (highlight Number (Sci.toRealFloat <$> floating) <?> "double")
 {-# INLINE double #-}
 
 -- | This token parser parses either 'natural' or a 'float'.
@@ -200,17 +205,39 @@ double = token (highlight Number floating <?> "double")
 -- any overlap in the grammar rules for naturals and floats. The number
 -- is parsed according to the grammar rules defined in the Haskell report.
 naturalOrDouble :: TokenParsing m => m (Either Integer Double)
-naturalOrDouble = token (highlight Number natDouble <?> "number")
+naturalOrDouble = fmap Sci.toRealFloat <$> naturalOrScientific
 {-# INLINE naturalOrDouble #-}
 
 -- | This token parser is like 'naturalOrDouble', but handles
 -- leading @-@ or @+@.
 integerOrDouble :: TokenParsing m => m (Either Integer Double)
-integerOrDouble = token (highlight Number iod <?> "number")
-  where iod = mneg <$> optional (oneOf "+-") <*> natDouble
+integerOrDouble = fmap Sci.toRealFloat <$> integerOrScientific
+{-# INLINE integerOrDouble #-}
+
+-- | This token parser parses a floating point value. Returns the value
+-- of the number. The number is parsed according to the grammar rules
+-- defined in the Haskell report.
+scientific :: TokenParsing m => m Scientific
+scientific = token (highlight Number floating <?> "scientific")
+{-# INLINE scientific #-}
+
+-- | This token parser parses either 'natural' or a 'scientific'.
+-- Returns the value of the number. This parsers deals with
+-- any overlap in the grammar rules for naturals and floats. The number
+-- is parsed according to the grammar rules defined in the Haskell report.
+naturalOrScientific :: TokenParsing m => m (Either Integer Scientific)
+naturalOrScientific = token (highlight Number natFloating <?> "number")
+{-# INLINE naturalOrScientific #-}
+
+-- | This token parser is like 'naturalOrScientific', but handles
+-- leading @-@ or @+@.
+integerOrScientific :: TokenParsing m => m (Either Integer Scientific)
+integerOrScientific = token (highlight Number ios <?> "number")
+  where ios = mneg <$> optional (oneOf "+-") <*> natFloating
         mneg (Just '-') nd = either (Left . negate) (Right . negate) nd
         mneg _          nd = nd
-{-# INLINE integerOrDouble #-}
+{-# INLINE integerOrScientific #-}
+
 
 -- | Token parser @symbol s@ parses 'string' @s@ and skips
 -- trailing white space.
@@ -614,22 +641,22 @@ nat, zeroNumber :: TokenParsing m => m Integer
 nat = zeroNumber <|> decimal
 zeroNumber = char '0' *> (hexadecimal <|> octal <|> decimal <|> pure 0) <?> ""
 
-floating :: TokenParsing m => m Double
+floating :: TokenParsing m => m Scientific
 floating = decimal <**> fractExponent
 {-# INLINE floating #-}
 
-fractExponent :: TokenParsing m => m (Integer -> Double)
-fractExponent = (\fract expo n -> (fromInteger n + fract) * expo) <$> fraction <*> option 1.0 exponent'
-            <|> (\expo n -> fromInteger n * expo) <$> exponent' where
-  fraction = Prelude.foldr op 0.0 <$> (char '.' *> (some digit <?> "fraction"))
-  op d f = (f + fromIntegral (digitToInt d))/10.0
+fractExponent :: TokenParsing m => m (Integer -> Scientific)
+fractExponent = (\fract expo n -> (fromInteger n + fract) * expo) <$> fraction <*> option 1 exponent'
+            <|> (\expo n -> fromInteger n * expo) <$> exponent'
+ where
+  fraction = foldl' op 0 <$> (char '.' *> (some digit <?> "fraction"))
+  op f d = f + Sci.scientific (fromIntegral (digitToInt d)) (Sci.base10Exponent f - 1)
   exponent' = ((\f e -> power (f e)) <$ oneOf "eE" <*> sign <*> (decimal <?> "exponent")) <?> "exponent"
-  power e
-    | e < 0     = 1.0/power(-e)
-    | otherwise = fromInteger (10^e)
+  power = Sci.scientific 1 . fromInteger
 
-natDouble, zeroNumFloat, decimalFloat :: TokenParsing m => m (Either Integer Double)
-natDouble
+
+natFloating, zeroNumFloat, decimalFloat :: TokenParsing m => m (Either Integer Scientific)
+natFloating
     = char '0' *> zeroNumFloat
   <|> decimalFloat
 zeroNumFloat
@@ -639,7 +666,7 @@ zeroNumFloat
   <|> pure (Left 0)
 decimalFloat = decimal <**> option Left (try fractFloat)
 
-fractFloat :: TokenParsing m => m (Integer -> Either Integer Double)
+fractFloat :: TokenParsing m => m (Integer -> Either Integer Scientific)
 fractFloat = (Right .) <$> fractExponent
 {-# INLINE fractFloat #-}
 

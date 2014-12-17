@@ -1,3 +1,7 @@
+0.12.2
+------
+* Added parsers for `scientific`, so we can parse decimal places without losing precision.
+
 0.12.1
 ----
 * Fixed the fixed behavior of `notFollowedBy`, which was showing internal state. This had led to unnecessary constraints on internal state that are now removed.

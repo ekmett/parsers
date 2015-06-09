@@ -11,7 +11,12 @@ homepage:      http://github.com/ekmett/parsers/
 bug-reports:   http://github.com/ekmett/parsers/issues
 copyright:     Copyright (C) 2010-2013 Edward A. Kmett
 synopsis:      Parsing combinators
-description:   Parsing combinators
+description:  
+  This library provides convenient combinators for working with and building parsing combinator libraries.
+  .
+  Given a few simple instances, e.g. for the class 'Text.Parser.Combinators.Parsing' in "Text.Parser.Combinators.Parsing" you
+  get access to a large number of canned definitions. Instances exist for the parsers provided by @parsec@,
+  @attoparsec@ and base’s "Text.Read".
 build-type:    Custom
 
 extra-source-files: .travis.yml

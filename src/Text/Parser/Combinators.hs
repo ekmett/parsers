@@ -139,13 +139,13 @@ sepEndBy :: Alternative m => m a -> m sep -> m [a]
 sepEndBy p sep = sepEndBy1 p sep <|> pure []
 {-# INLINE sepEndBy #-}
 
--- | @endBy1 p sep@ parses /one/ or more occurrences of @p@, seperated
+-- | @endBy1 p sep@ parses /one/ or more occurrences of @p@, separated
 -- and ended by @sep@. Returns a list of values returned by @p@.
 endBy1 :: Alternative m => m a -> m sep -> m [a]
 endBy1 p sep = some (p <* sep)
 {-# INLINE endBy1 #-}
 
--- | @endBy p sep@ parses /zero/ or more occurrences of @p@, seperated
+-- | @endBy p sep@ parses /zero/ or more occurrences of @p@, separated
 -- and ended by @sep@. Returns a list of values returned by @p@.
 --
 -- >   cStatements  = cStatement `endBy` semi

@@ -1,11 +1,11 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# OPTIONS_GHC -fspec-constr -fspec-constr-count=8 #-}
-{-# LANGUAGE CPP #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
 #endif
+{-# OPTIONS_GHC -fspec-constr -fspec-constr-count=8 #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Text.Parser.Token
@@ -98,7 +98,9 @@ import Data.Functor.Identity
 import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
 import Data.List (foldl')
+#if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
+#endif
 import Data.Scientific ( Scientific )
 import qualified Data.Scientific as Sci
 import Data.String

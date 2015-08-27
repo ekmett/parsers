@@ -46,7 +46,9 @@ module Text.Parser.Char
   , CharParsing(..)
   ) where
 
+#if __GLASGOW_HASKELL__ < 710
 import Control.Applicative
+#endif
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict
@@ -62,7 +64,9 @@ import Data.CharSet (CharSet(..))
 import qualified Data.CharSet as CharSet
 import Data.Foldable
 import qualified Data.IntSet as IntSet
+#if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
+#endif
 import Data.Text
 import qualified Text.ParserCombinators.ReadP as ReadP
 import qualified Text.Parsec as Parsec

@@ -1,5 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -42,7 +42,9 @@ module Text.Parser.Token.Style
 import Control.Applicative
 import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
+#if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
+#endif
 import Data.Data
 import Text.Parser.Combinators
 import Text.Parser.Char

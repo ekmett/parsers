@@ -36,7 +36,9 @@ import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
+#if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
+#endif
 import qualified Text.ParserCombinators.ReadP as ReadP
 import qualified Text.Parsec as Parsec
 import Text.Parser.Combinators

@@ -72,8 +72,10 @@ import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
 import Data.Foldable (asum)
+#if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
 import Data.Traversable (sequenceA)
+#endif
 import qualified Text.Parsec as Parsec
 import qualified Data.Attoparsec.Types as Att
 import qualified Data.Attoparsec.Combinator as Att

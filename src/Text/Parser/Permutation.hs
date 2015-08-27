@@ -45,7 +45,7 @@ infixl 2 <$$>, <$?>
 {-# INLINE (<||>) #-}
 
 -- | The expression @f \<$$> p@ creates a fresh permutation parser
--- consisting of parser @p@. The the final result of the permutation
+-- consisting of parser @p@. The final result of the permutation
 -- parser is the function @f@ applied to the return value of @p@. The
 -- parser @p@ is not allowed to accept empty input - use the optional
 -- combinator ('<$?>') instead.
@@ -72,7 +72,7 @@ infixl 2 <$$>, <$?>
 {-# INLINE (<|?>) #-}
 
 -- | The expression @f \<$?> (x,p)@ creates a fresh permutation parser
--- consisting of parser @p@. The the final result of the permutation
+-- consisting of parser @p@. The final result of the permutation
 -- parser is the function @f@ applied to the return value of @p@. The
 -- parser @p@ is optional - if it can not be applied, the default value
 -- @x@ will be used instead.

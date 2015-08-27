@@ -36,6 +36,8 @@ import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
+import qualified Data.Attoparsec.Types as Att
+import qualified Data.Attoparsec.Combinator as Att
 #if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
 #endif
@@ -82,6 +84,9 @@ instance (LookAheadParsing m, Monad m) => LookAheadParsing (IdentityT m) where
 
 instance (Parsec.Stream s m t, Show t) => LookAheadParsing (Parsec.ParsecT s u m) where
   lookAhead = Parsec.lookAhead
+
+instance Att.Chunk i => LookAheadParsing (Att.Parser i) where
+  lookAhead = Att.lookAhead
 
 instance LookAheadParsing ReadP.ReadP where
   lookAhead p = ReadP.look >>= \s ->

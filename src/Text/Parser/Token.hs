@@ -97,14 +97,15 @@ import Data.Char
 import Data.Functor.Identity
 import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
-import Data.List (foldl')
+import Data.List (foldl', transpose)
 #if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
 #endif
 import Data.Scientific ( Scientific )
 import qualified Data.Scientific as Sci
 import Data.String
-import Data.Text hiding (empty,zip,foldl,foldl')
+import Data.Text hiding (empty,zip,foldl,foldl',take,map,length,splitAt,null,transpose)
+import Numeric (showIntAtBase)
 import qualified Text.ParserCombinators.ReadP as ReadP
 import qualified Text.Parsec as Parsec
 import qualified Data.Attoparsec.Types as Att
@@ -581,10 +582,32 @@ escapeCode :: TokenParsing m => m Char
 escapeCode = (charEsc <|> charNum <|> charAscii <|> charControl) <?> "escape code"
   where
   charControl = (\c -> toEnum (fromEnum c - fromEnum '@')) <$> (char '^' *> (upper <|> char '@'))
-  charNum     = toEnum . fromInteger <$> num where
-    num = decimal
-      <|> (char 'o' *> number 8 octDigit)
-      <|> (char 'x' *> number 16 hexDigit)
+  charNum = toEnum <$> num
+    where
+      num = bounded 10 maxchar
+        <|> (char 'o' *> bounded 8 maxchar)
+        <|> (char 'x' *> bounded 16 maxchar)
+      maxchar = fromEnum (maxBound :: Char)
+
+  bounded base bnd = foldl' (\x d -> base * x + digitToInt d) 0
+                 <$> bounded' (take base thedigits) (map digitToInt $ showIntAtBase base intToDigit bnd "")
+    where
+      thedigits = map char ['0'..'9'] ++ map oneOf (transpose [['A'..'F'],['a'..'f']])
+      toomuch = unexpected "out-of-range numeric escape sequence"
+      bounded' dps@(zero:_) bds = skipSome zero *> ([] <$ notFollowedBy (choice dps) <|> bounded'' dps bds)
+                              <|> bounded'' dps bds
+      bounded' []           _   = error "bounded called with base 0"
+      bounded'' dps []         = [] <$ notFollowedBy (choice dps) <|> toomuch
+      bounded'' dps (bd : bds) = let anyd = choice dps
+                                     nomore = notFollowedBy anyd <|> toomuch
+                                     (low, ex : high) = splitAt bd dps
+                                  in ((:) <$> choice low <*> atMost (length bds) anyd) <* nomore
+                                     <|> ((:) <$> ex <*> ([] <$ nomore <|> bounded'' dps bds))
+                                     <|> if not (null bds)
+                                            then (:) <$> choice high <*> atMost (length bds - 1) anyd <* nomore
+                                            else empty
+      atMost n p | n <= 0    = pure []
+                 | otherwise = ((:) <$> p <*> atMost (n - 1) p) <|> pure []
   charEsc = choice $ parseEsc <$> escMap
   parseEsc (c,code) = code <$ char c
   escMap = zip "abfnrtv\\\"\'" "\a\b\f\n\r\t\v\\\"\'"

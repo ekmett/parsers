@@ -1,3 +1,7 @@
+0.12.3
+------
+* Build without warnings on GHC 7.10
+
 0.12.2
 ------
 * Added parsers for `scientific`, so we can parse decimal places without losing precision.

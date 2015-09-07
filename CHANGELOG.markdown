@@ -1,6 +1,10 @@
 0.12.3
 ------
 * Build without warnings on GHC 7.10
+* Add `LookAheadParsing` instance for `attoparsec`
+* Documentation fixes
+* Fix out-of-bounds error in numeric escapes
+* Depend on `base-orphans` for `Applicative ReadP` on old `base`
 
 0.12.2
 ------

@@ -57,11 +57,7 @@ module Text.Parser.Combinators
   ) where
 
 import Control.Applicative
-#ifdef ORPHAN_ALTERNATIVE_READP
-import Control.Monad (MonadPlus(..), ap)
-#else
 import Control.Monad (MonadPlus(..))
-#endif
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict
@@ -74,6 +70,9 @@ import Control.Monad.Trans.Identity
 import Data.Foldable (asum)
 #if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
+#ifdef ORPHAN_ALTERNATIVE_READP
+import Data.Orphans ()
+#endif
 import Data.Traversable (sequenceA)
 #endif
 import qualified Text.Parsec as Parsec
@@ -413,14 +412,3 @@ instance Parsing ReadP.ReadP where
   eof        = ReadP.eof
   notFollowedBy p = ((Just <$> p) ReadP.<++ pure Nothing)
     >>= maybe (pure ()) (unexpected . show)
-
-#ifdef ORPHAN_ALTERNATIVE_READP
-instance Applicative ReadP.ReadP where
-  pure = return
-  (<*>) = ap
-
-instance Alternative ReadP.ReadP where
-  empty = mzero
-  (<|>) = mplus
-#endif
-

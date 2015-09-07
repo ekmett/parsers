@@ -74,11 +74,13 @@ type OperatorTable m a = [[Operator m a]]
 -- expression parser that handles prefix signs, postfix increment and
 -- basic arithmetic.
 --
+-- >  tp = makeTokenParser emptyDef
+-- >
 -- >  expr    = buildExpressionParser table term
 -- >          <?> "expression"
 -- >
--- >  term    =  parens expr
--- >          <|> natural
+-- >  term    =  parens tp expr
+-- >          <|> natural tp
 -- >          <?> "simple expression"
 -- >
 -- >  table   = [ [prefix "-" negate, prefix "+" id ]
@@ -87,9 +89,9 @@ type OperatorTable m a = [[Operator m a]]
 -- >            , [binary "+" (+) AssocLeft, binary "-" (-)   AssocLeft ]
 -- >            ]
 -- >
--- >  binary  name fun assoc = Infix (fun <* reservedOp name) assoc
--- >  prefix  name fun       = Prefix (fun <* reservedOp name)
--- >  postfix name fun       = Postfix (fun <* reservedOp name)
+-- >  binary  name fun assoc = Infix (fun <$ reservedOp tp name) assoc
+-- >  prefix  name fun       = Prefix (fun <$ reservedOp tp name)
+-- >  postfix name fun       = Postfix (fun <$ reservedOp tp name)
 
 buildExpressionParser :: forall m a. (Parsing m, Applicative m)
                       => OperatorTable m a

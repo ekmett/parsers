@@ -83,6 +83,4 @@ test-suite quickcheck
     QuickCheck,
     quickcheck-instances
   ghc-options: -Wall -threaded
-  if impl(ghc<7.6.1)
-    ghc-options: -Werror
   hs-source-dirs: tests

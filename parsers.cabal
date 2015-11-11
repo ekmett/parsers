@@ -11,13 +11,14 @@ homepage:      http://github.com/ekmett/parsers/
 bug-reports:   http://github.com/ekmett/parsers/issues
 copyright:     Copyright (C) 2010-2013 Edward A. Kmett
 synopsis:      Parsing combinators
-description:  
+description:
   This library provides convenient combinators for working with and building parsing combinator libraries.
   .
   Given a few simple instances, e.g. for the class 'Text.Parser.Combinators.Parsing' in "Text.Parser.Combinators.Parsing" you
   get access to a large number of canned definitions. Instances exist for the parsers provided by @parsec@,
   @attoparsec@ and base’s "Text.Read".
 build-type:    Custom
+tested-with:   GHC==7.0.4, GHC==7.2.2, GHC==7.4.2, GHC==7.6.3, GHC==7.8.4, GHC==7.10.2
 
 extra-source-files: .travis.yml
 
@@ -39,7 +40,9 @@ library
 
   hs-source-dirs: src
 
-  ghc-options: -Wall -fno-warn-wrong-do-bind -fwarn-monomorphism-restriction -fwarn-identities -fwarn-incomplete-record-updates -fwarn-incomplete-uni-patterns
+  ghc-options: -Wall -fno-warn-wrong-do-bind -fwarn-monomorphism-restriction -fwarn-incomplete-record-updates
+  if impl(ghc >= 7.2)
+    ghc-options: -fwarn-identities -fwarn-incomplete-uni-patterns
 
   build-depends:
     base                 >= 4        && < 5,

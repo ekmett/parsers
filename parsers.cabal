@@ -39,7 +39,9 @@ library
 
   hs-source-dirs: src
 
-  ghc-options: -Wall -fno-warn-wrong-do-bind -fwarn-monomorphism-restriction -fwarn-identities -fwarn-incomplete-record-updates -fwarn-incomplete-uni-patterns
+  ghc-options: -Wall -fno-warn-wrong-do-bind -fwarn-monomorphism-restriction -fwarn-incomplete-record-updates
+  if impl(ghc >= 7.2)
+    ghc-options: -fwarn-identities -fwarn-incomplete-uni-patterns
 
   build-depends:
     base                 >= 4        && < 5,

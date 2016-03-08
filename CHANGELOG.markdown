@@ -1,3 +1,7 @@
+0.12.4
+------
+* Allow `transformers` 0.5
+
 0.12.3
 ------
 * Build without warnings on GHC 7.10

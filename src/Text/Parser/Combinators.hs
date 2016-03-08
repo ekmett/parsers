@@ -129,7 +129,7 @@ sepBy1 p sep = (:) <$> p <*> many (sep *> p)
 -- separated and optionally ended by @sep@. Returns a list of values
 -- returned by @p@.
 sepEndBy1 :: Alternative m => m a -> m sep -> m [a]
-sepEndBy1 p sep = flip id <$> p <*> ((flip (:) <$> (sep *> sepEndBy p sep)) <|> pure pure)
+sepEndBy1 p sep = p <**> ((flip (:) <$> (sep *> sepEndBy p sep)) <|> pure pure)
 
 -- | @sepEndBy p sep@ parses /zero/ or more occurrences of @p@,
 -- separated and optionally ended by @sep@, ie. haskell style
@@ -197,7 +197,7 @@ chainl p op x = chainl1 p op <|> pure x
 -- >       <|> (-) <$ symbol "-"
 chainl1 :: Alternative m => m a -> m (a -> a -> a) -> m a
 chainl1 p op = scan where
-  scan = flip id <$> p <*> rst
+  scan = p <**> rst
   rst = (\f y g x -> g (f x y)) <$> op <*> p <*> rst <|> pure id
 {-# INLINE chainl1 #-}
 
@@ -207,7 +207,7 @@ chainl1 p op = scan where
 -- by @p@.
 chainr1 :: Alternative m => m a -> m (a -> a -> a) -> m a
 chainr1 p op = scan where
-  scan = flip id <$> p <*> rst
+  scan = p <**> rst
   rst = (flip <$> op <*> scan) <|> pure id
 {-# INLINE chainr1 #-}
 

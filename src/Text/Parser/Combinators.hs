@@ -162,7 +162,7 @@ count n p | n <= 0    = pure []
           | otherwise = sequenceA (replicate n p)
 {-# INLINE count #-}
 
--- | @chainr p op x@ parser /zero/ or more occurrences of @p@,
+-- | @chainr p op x@ parses /zero/ or more occurrences of @p@,
 -- separated by @op@ Returns a value obtained by a /right/ associative
 -- application of all functions returned by @op@ to the values returned
 -- by @p@. If there are no occurrences of @p@, the value @x@ is
@@ -171,7 +171,7 @@ chainr :: Alternative m => m a -> m (a -> a -> a) -> a -> m a
 chainr p op x = chainr1 p op <|> pure x
 {-# INLINE chainr #-}
 
--- | @chainl p op x@ parser /zero/ or more occurrences of @p@,
+-- | @chainl p op x@ parses /zero/ or more occurrences of @p@,
 -- separated by @op@. Returns a value obtained by a /left/ associative
 -- application of all functions returned by @op@ to the values returned
 -- by @p@. If there are zero occurrences of @p@, the value @x@ is
@@ -180,7 +180,7 @@ chainl :: Alternative m => m a -> m (a -> a -> a) -> a -> m a
 chainl p op x = chainl1 p op <|> pure x
 {-# INLINE chainl #-}
 
--- | @chainl1 p op x@ parser /one/ or more occurrences of @p@,
+-- | @chainl1 p op x@ parses /one/ or more occurrences of @p@,
 -- separated by @op@ Returns a value obtained by a /left/ associative
 -- application of all functions returned by @op@ to the values returned
 -- by @p@. . This parser can for example be used to eliminate left
@@ -201,7 +201,7 @@ chainl1 p op = scan where
   rst = (\f y g x -> g (f x y)) <$> op <*> p <*> rst <|> pure id
 {-# INLINE chainl1 #-}
 
--- | @chainr1 p op x@ parser /one/ or more occurrences of |p|,
+-- | @chainr1 p op x@ parses /one/ or more occurrences of @p@,
 -- separated by @op@ Returns a value obtained by a /right/ associative
 -- application of all functions returned by @op@ to the values returned
 -- by @p@.
@@ -211,7 +211,7 @@ chainr1 p op = scan where
   rst = (flip <$> op <*> scan) <|> pure id
 {-# INLINE chainr1 #-}
 
--- | @manyTill p end@ applies parser @p@ /zero/ or more times until
+-- | @manyTill p end@ applies parses @p@ /zero/ or more times until
 -- parser @end@ succeeds. Returns the list of values returned by @p@.
 -- This parser can be used to scan comments:
 --

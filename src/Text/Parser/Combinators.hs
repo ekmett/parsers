@@ -211,7 +211,7 @@ chainr1 p op = scan where
   rst = (flip <$> op <*> scan) <|> pure id
 {-# INLINE chainr1 #-}
 
--- | @manyTill p end@ applies parses @p@ /zero/ or more times until
+-- | @manyTill p end@ applies parser @p@ /zero/ or more times until
 -- parser @end@ succeeds. Returns the list of values returned by @p@.
 -- This parser can be used to scan comments:
 --

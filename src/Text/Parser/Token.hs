@@ -2,6 +2,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE UndecidableInstances #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -93,6 +95,9 @@ import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
+import Control.Monad.State.Class as Class
+import Control.Monad.Reader.Class as Class
+import Control.Monad.Writer.Class as Class
 import Data.Char
 import Data.Functor.Identity
 import qualified Data.HashSet as HashSet
@@ -743,6 +748,26 @@ instance MonadTrans Unhighlighted where
   lift = Unhighlighted
   {-# INLINE lift #-}
 
+instance MonadState s m => MonadState s (Unhighlighted m) where
+  get = lift Class.get
+  {-# INLINE get #-}
+  put = lift . Class.put
+  {-# INLINE put #-}
+
+instance MonadReader e m => MonadReader e (Unhighlighted m) where
+  ask = lift Class.ask
+  {-# INLINE ask #-}
+  local f = Unhighlighted . Class.local f . runUnhighlighted
+  {-# INLINE local #-}
+
+instance MonadWriter e m => MonadWriter e (Unhighlighted m) where
+  tell = lift . Class.tell
+  {-# INLINE tell #-}
+  listen = Unhighlighted . Class.listen . runUnhighlighted
+  {-# INLINE listen #-}
+  pass = Unhighlighted . Class.pass . runUnhighlighted
+  {-# INLINE pass #-}
+
 instance TokenParsing m => TokenParsing (Unhighlighted m) where
   nesting (Unhighlighted m) = Unhighlighted (nesting m)
   {-# INLINE nesting #-}
@@ -774,6 +799,26 @@ instance MonadTrans Unspaced where
   lift = Unspaced
   {-# INLINE lift #-}
 
+instance MonadState s m => MonadState s (Unspaced m) where
+  get = lift Class.get
+  {-# INLINE get #-}
+  put = lift . Class.put
+  {-# INLINE put #-}
+
+instance MonadReader e m => MonadReader e (Unspaced m) where
+  ask = lift Class.ask
+  {-# INLINE ask #-}
+  local f = Unspaced . Class.local f . runUnspaced
+  {-# INLINE local #-}
+
+instance MonadWriter e m => MonadWriter e (Unspaced m) where
+  tell = lift . Class.tell
+  {-# INLINE tell #-}
+  listen = Unspaced . Class.listen . runUnspaced
+  {-# INLINE listen #-}
+  pass = Unspaced . Class.pass . runUnspaced
+  {-# INLINE pass #-}
+
 instance TokenParsing m => TokenParsing (Unspaced m) where
   nesting (Unspaced m) = Unspaced (nesting m)
   {-# INLINE nesting #-}
@@ -804,6 +849,26 @@ instance Parsing m => Parsing (Unlined m) where
 instance MonadTrans Unlined where
   lift = Unlined
   {-# INLINE lift #-}
+
+instance MonadState s m => MonadState s (Unlined m) where
+  get = lift Class.get
+  {-# INLINE get #-}
+  put = lift . Class.put
+  {-# INLINE put #-}
+
+instance MonadReader e m => MonadReader e (Unlined m) where
+  ask = lift Class.ask
+  {-# INLINE ask #-}
+  local f = Unlined . Class.local f . runUnlined
+  {-# INLINE local #-}
+
+instance MonadWriter e m => MonadWriter e (Unlined m) where
+  tell = lift . Class.tell
+  {-# INLINE tell #-}
+  listen = Unlined . Class.listen . runUnlined
+  {-# INLINE listen #-}
+  pass = Unlined . Class.pass . runUnlined
+  {-# INLINE pass #-}
 
 instance TokenParsing m => TokenParsing (Unlined m) where
   nesting (Unlined m) = Unlined (nesting m)

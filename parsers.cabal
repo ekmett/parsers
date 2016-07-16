@@ -55,6 +55,9 @@ library
     transformers         >= 0.2      && < 0.6,
     scientific           >= 0.3      && < 0.4,
     unordered-containers >= 0.2      && < 0.3
+  if impl(ghc >= 7.10)
+    build-depends:
+      binary             >= 0.7.2    && < 1
 
 -- Verify the results of the examples
 test-suite doctests

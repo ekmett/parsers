@@ -252,7 +252,7 @@ class Alternative m => Parsing m where
   unexpected :: String -> m a
 #ifdef USE_DEFAULT_SIGNATURES
   default unexpected :: (MonadTrans t, Monad n, Parsing n, m ~ t n) =>
-                        String -> t n a
+                        String -> m a
   unexpected = lift . unexpected
   {-# INLINE unexpected #-}
 #endif
@@ -263,7 +263,7 @@ class Alternative m => Parsing m where
   -- >  eof  = notFollowedBy anyChar <?> "end of input"
   eof :: m ()
 #ifdef USE_DEFAULT_SIGNATURES
-  default eof :: (MonadTrans t, Monad n, Parsing n, m ~ t n) => t n ()
+  default eof :: (MonadTrans t, Monad n, Parsing n, m ~ t n) => m ()
   eof = lift eof
   {-# INLINE eof #-}
 #endif

@@ -62,7 +62,7 @@ infixl 2 <$$>, <$?>
 (<$$>) f p = newPermutation f <||> p
 {-# INLINE (<$$>) #-}
 
--- | The expression @perm \<||> (x,p)@ adds parser @p@ to the
+-- | The expression @perm \<|?> (x,p)@ adds parser @p@ to the
 -- permutation parser @perm@. The parser @p@ is optional - if it can
 -- not be applied, the default value @x@ will be used instead. Returns
 -- a new permutation parser that includes the optional parser @p@.

@@ -173,7 +173,7 @@ stringLiteral' = fromString <$> token (highlight StringLiteral lit) where
   escapeGap = skipSome space *> (char '\\' <?> "end of string gap")
 {-# INLINE stringLiteral' #-}
 
--- | This token parser parses a natural number (a positive whole
+-- | This token parser parses a natural number (a non-negative whole
 -- number). Returns the value of the number. The number can be
 -- specified in 'decimal', 'hexadecimal' or
 -- 'octal'. The number is parsed according to the grammar
@@ -624,7 +624,7 @@ escapeCode = (charEsc <|> charNum <|> charAscii <|> charControl) <?> "escape cod
   ascii2 = "\BS\HT\LF\VT\FF\CR\SO\SI\EM\FS\GS\RS\US\SP"
   ascii3 = "\NUL\SOH\STX\ETX\EOT\ENQ\ACK\BEL\DLE\DC1\DC2\DC3\DC4\NAK\SYN\ETB\CAN\SUB\ESC\DEL"
 
--- | This parser parses a natural number (a positive whole
+-- | This parser parses a natural number (a non-negative whole
 -- number). Returns the value of the number. The number can be
 -- specified in 'decimal', 'hexadecimal' or
 -- 'octal'. The number is parsed according to the grammar
@@ -695,7 +695,7 @@ fractFloat :: TokenParsing m => m (Integer -> Either Integer Scientific)
 fractFloat = (Right .) <$> fractExponent
 {-# INLINE fractFloat #-}
 
--- | Parses a positive whole number in the decimal system. Returns the
+-- | Parses a non-negative whole number in the decimal system. Returns the
 -- value of the number.
 --
 -- This parser does NOT swallow trailing whitespace
@@ -703,7 +703,7 @@ decimal :: TokenParsing m => m Integer
 decimal = number 10 digit
 {-# INLINE decimal #-}
 
--- | Parses a positive whole number in the hexadecimal system. The number
+-- | Parses a non-negative whole number in the hexadecimal system. The number
 -- should be prefixed with \"x\" or \"X\". Returns the value of the
 -- number.
 --
@@ -712,7 +712,7 @@ hexadecimal :: TokenParsing m => m Integer
 hexadecimal = oneOf "xX" *> number 16 hexDigit
 {-# INLINE hexadecimal #-}
 
--- | Parses a positive whole number in the octal system. The number
+-- | Parses a non-negative whole number in the octal system. The number
 -- should be prefixed with \"o\" or \"O\". Returns the value of the
 -- number.
 --

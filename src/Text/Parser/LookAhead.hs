@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TupleSections #-}
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 #define USE_DEFAULT_SIGNATURES
@@ -40,6 +41,7 @@ import qualified Data.Attoparsec.Types as Att
 import qualified Data.Attoparsec.Combinator as Att
 #if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
+import Control.Applicative ((<$>))
 #endif
 import qualified Text.ParserCombinators.ReadP as ReadP
 import qualified Text.Parsec as Parsec
@@ -51,11 +53,11 @@ class Parsing m => LookAheadParsing m where
   lookAhead :: m a -> m a
 
 instance (LookAheadParsing m, MonadPlus m) => LookAheadParsing (Lazy.StateT s m) where
-  lookAhead (Lazy.StateT m) = Lazy.StateT $ lookAhead . m
+  lookAhead (Lazy.StateT m) = Lazy.StateT $ \s -> (,s) . fst <$> lookAhead (m s)
   {-# INLINE lookAhead #-}
 
 instance (LookAheadParsing m, MonadPlus m) => LookAheadParsing (Strict.StateT s m) where
-  lookAhead (Strict.StateT m) = Strict.StateT $ lookAhead . m
+  lookAhead (Strict.StateT m) = Strict.StateT $ \s -> (,s) . fst <$> lookAhead (m s)
   {-# INLINE lookAhead #-}
 
 instance (LookAheadParsing m, MonadPlus m) => LookAheadParsing (ReaderT e m) where
@@ -63,11 +65,11 @@ instance (LookAheadParsing m, MonadPlus m) => LookAheadParsing (ReaderT e m) whe
   {-# INLINE lookAhead #-}
 
 instance (LookAheadParsing m, MonadPlus m, Monoid w) => LookAheadParsing (Strict.WriterT w m) where
-  lookAhead (Strict.WriterT m) = Strict.WriterT $ lookAhead m
+  lookAhead (Strict.WriterT m) = Strict.WriterT $ (,mempty) . fst <$> lookAhead m
   {-# INLINE lookAhead #-}
 
 instance (LookAheadParsing m, MonadPlus m, Monoid w) => LookAheadParsing (Lazy.WriterT w m) where
-  lookAhead (Lazy.WriterT m) = Lazy.WriterT $ lookAhead m
+  lookAhead (Lazy.WriterT m) = Lazy.WriterT $ (,mempty) . fst <$> lookAhead m
   {-# INLINE lookAhead #-}
 
 instance (LookAheadParsing m, MonadPlus m, Monoid w) => LookAheadParsing (Lazy.RWST r w s m) where

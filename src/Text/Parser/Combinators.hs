@@ -129,7 +129,7 @@ sepBy1 p sep = (:) <$> p <*> many (sep *> p)
 -- separated and optionally ended by @sep@. Returns a list of values
 -- returned by @p@.
 sepEndBy1 :: Alternative m => m a -> m sep -> m [a]
-sepEndBy1 p sep = p <**> ((flip (:) <$> (sep *> sepEndBy p sep)) <|> pure pure)
+sepEndBy1 p sep = (:) <$> p <*> ((sep *> sepEndBy p sep) <|> pure [])
 
 -- | @sepEndBy p sep@ parses /zero/ or more occurrences of @p@,
 -- separated and optionally ended by @sep@, ie. haskell style

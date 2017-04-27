@@ -20,7 +20,10 @@ description:
 build-type:    Custom
 tested-with:   GHC==7.0.4, GHC==7.2.2, GHC==7.4.2, GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0.2, GHC==8.2.1
 
-extra-source-files: .travis.yml
+extra-source-files:
+  .travis.yml
+  CHANGELOG.markdown
+  README.markdown
 
 custom-setup
   setup-depends:

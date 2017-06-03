@@ -1,5 +1,5 @@
-next
-----
+0.12.5
+------
 * Allow building with GHC 8.2
 * Add `mtl` instances for `Unspaced`, `Unhighlighted`, and `Unlined`
 * Revamp `Setup.hs` to use `cabal-doctest`. This makes it build

@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
@@ -129,8 +130,9 @@ whiteSpace = someSpace <|> pure ()
 -- sequences. The literal character is parsed according to the grammar
 -- rules defined in the Haskell report (which matches most programming
 -- languages quite closely).
-charLiteral :: TokenParsing m => m Char
+charLiteral :: forall m. TokenParsing m => m Char
 charLiteral = token (highlight CharLiteral lit) where
+  lit :: m Char
   lit = between (char '\'') (char '\'' <?> "end of character") characterChar
     <?> "character"
 {-# INLINE charLiteral #-}
@@ -140,40 +142,58 @@ charLiteral = token (highlight CharLiteral lit) where
 -- gaps. The literal string is parsed according to the grammar rules
 -- defined in the Haskell report (which matches most programming
 -- languages quite closely).
-stringLiteral :: (TokenParsing m, IsString s) => m s
+stringLiteral :: forall m s. (TokenParsing m, IsString s) => m s
 stringLiteral = fromString <$> token (highlight StringLiteral lit) where
+  lit :: m [Char]
   lit = Prelude.foldr (maybe id (:)) ""
     <$> between (char '"') (char '"' <?> "end of string") (many stringChar)
     <?> "string"
+
+  stringChar :: m (Maybe Char)
   stringChar = Just <$> stringLetter
            <|> stringEscape
        <?> "string character"
-  stringLetter    = satisfy (\c -> (c /= '"') && (c /= '\\') && (c > '\026'))
 
+  stringLetter :: m Char
+  stringLetter = satisfy (\c -> (c /= '"') && (c /= '\\') && (c > '\026'))
+
+  stringEscape :: m (Maybe Char)
   stringEscape = highlight EscapeCode $ char '\\' *> esc where
+    esc :: m (Maybe Char)
     esc = Nothing <$ escapeGap
       <|> Nothing <$ escapeEmpty
       <|> Just <$> escapeCode
+
+  escapeEmpty, escapeGap :: m Char
   escapeEmpty = char '&'
   escapeGap = skipSome space *> (char '\\' <?> "end of string gap")
 {-# INLINE stringLiteral #-}
 
 -- | This token parser behaves as 'stringLiteral', but for single-quoted
 -- strings.
-stringLiteral' :: (TokenParsing m, IsString s) => m s
+stringLiteral' :: forall m s. (TokenParsing m, IsString s) => m s
 stringLiteral' = fromString <$> token (highlight StringLiteral lit) where
+  lit :: m [Char]
   lit = Prelude.foldr (maybe id (:)) ""
     <$> between (char '\'') (char '\'' <?> "end of string") (many stringChar)
     <?> "string"
+
+  stringChar :: m (Maybe Char)
   stringChar = Just <$> stringLetter
            <|> stringEscape
        <?> "string character"
-  stringLetter    = satisfy (\c -> (c /= '\'') && (c /= '\\') && (c > '\026'))
 
+  stringLetter :: m Char
+  stringLetter = satisfy (\c -> (c /= '\'') && (c /= '\\') && (c > '\026'))
+
+  stringEscape :: m (Maybe Char)
   stringEscape = highlight EscapeCode $ char '\\' *> esc where
+    esc :: m (Maybe Char)
     esc = Nothing <$ escapeGap
       <|> Nothing <$ escapeEmpty
       <|> Just <$> escapeCode
+
+  escapeEmpty, escapeGap :: m Char
   escapeEmpty = char '&'
   escapeGap = skipSome space *> (char '\\' <?> "end of string gap")
 {-# INLINE stringLiteral' #-}
@@ -193,9 +213,10 @@ natural = token natural'
 -- number can be specified in 'decimal', 'hexadecimal'
 -- or 'octal'. The number is parsed according
 -- to the grammar rules in the Haskell report.
-integer :: TokenParsing m => m Integer
+integer :: forall m. TokenParsing m => m Integer
 integer = token (token (highlight Operator sgn <*> natural')) <?> "integer"
   where
+  sgn :: m (Integer -> Integer)
   sgn = negate <$ char '-'
     <|> id <$ char '+'
     <|> pure id
@@ -239,9 +260,11 @@ naturalOrScientific = token (highlight Number natFloating <?> "number")
 
 -- | This token parser is like 'naturalOrScientific', but handles
 -- leading @-@ or @+@.
-integerOrScientific :: TokenParsing m => m (Either Integer Scientific)
+integerOrScientific :: forall m. TokenParsing m => m (Either Integer Scientific)
 integerOrScientific = token (highlight Number ios <?> "number")
-  where ios = mneg <$> optional (oneOf "+-") <*> natFloating
+  where ios :: m (Either Integer Scientific)
+        ios = mneg <$> optional (oneOf "+-") <*> natFloating
+
         mneg (Just '-') nd = either (Left . negate) (Right . negate) nd
         mneg _          nd = nd
 {-# INLINE integerOrScientific #-}
@@ -583,27 +606,38 @@ charLetter = satisfy (\c -> (c /= '\'') && (c /= '\\') && (c > '\026'))
 --
 -- This parser does NOT swallow trailing whitespace
 
-escapeCode :: TokenParsing m => m Char
+escapeCode :: forall m. TokenParsing m => m Char
 escapeCode = (charEsc <|> charNum <|> charAscii <|> charControl) <?> "escape code"
   where
+  charControl, charNum :: m Char
   charControl = (\c -> toEnum (fromEnum c - fromEnum '@')) <$> (char '^' *> (upper <|> char '@'))
   charNum = toEnum <$> num
     where
+      num :: m Int
       num = bounded 10 maxchar
         <|> (char 'o' *> bounded 8 maxchar)
         <|> (char 'x' *> bounded 16 maxchar)
       maxchar = fromEnum (maxBound :: Char)
 
+  bounded :: Int -> Int -> m Int
   bounded base bnd = foldl' (\x d -> base * x + digitToInt d) 0
                  <$> bounded' (take base thedigits) (map digitToInt $ showIntAtBase base intToDigit bnd "")
     where
+      thedigits :: [m Char]
       thedigits = map char ['0'..'9'] ++ map oneOf (transpose [['A'..'F'],['a'..'f']])
+
+      toomuch :: m a
       toomuch = unexpected "out-of-range numeric escape sequence"
+
+      bounded', bounded'' :: [m Char] -> [Int] -> m [Char]
       bounded' dps@(zero:_) bds = skipSome zero *> ([] <$ notFollowedBy (choice dps) <|> bounded'' dps bds)
                               <|> bounded'' dps bds
       bounded' []           _   = error "bounded called with base 0"
       bounded'' dps []         = [] <$ notFollowedBy (choice dps) <|> toomuch
-      bounded'' dps (bd : bds) = let anyd = choice dps
+      bounded'' dps (bd : bds) = let anyd :: m Char
+                                     anyd = choice dps
+
+                                     nomore :: m ()
                                      nomore = notFollowedBy anyd <|> toomuch
                                      (low, ex : high) = splitAt bd dps
                                   in ((:) <$> choice low <*> atMost (length bds) anyd) <* nomore
@@ -613,10 +647,16 @@ escapeCode = (charEsc <|> charNum <|> charAscii <|> charControl) <?> "escape cod
                                             else empty
       atMost n p | n <= 0    = pure []
                  | otherwise = ((:) <$> p <*> atMost (n - 1) p) <|> pure []
+
+  charEsc :: m Char
   charEsc = choice $ parseEsc <$> escMap
+
   parseEsc (c,code) = code <$ char c
   escMap = zip "abfnrtv\\\"\'" "\a\b\f\n\r\t\v\\\"\'"
+
+  charAscii :: m Char
   charAscii = choice $ parseAscii <$> asciiMap
+
   parseAscii (asc,code) = try $ code <$ string asc
   asciiMap = zip (ascii3codes ++ ascii2codes) (ascii3 ++ ascii2)
   ascii2codes, ascii3codes :: [String]
@@ -675,13 +715,18 @@ floating :: TokenParsing m => m Scientific
 floating = decimal <**> fractExponent
 {-# INLINE floating #-}
 
-fractExponent :: TokenParsing m => m (Integer -> Scientific)
+fractExponent :: forall m. TokenParsing m => m (Integer -> Scientific)
 fractExponent = (\fract expo n -> (fromInteger n + fract) * expo) <$> fraction <*> option 1 exponent'
             <|> (\expo n -> fromInteger n * expo) <$> exponent'
  where
+  fraction :: m Scientific
   fraction = foldl' op 0 <$> (char '.' *> (some digit <?> "fraction"))
+
   op f d = f + Sci.scientific (fromIntegral (digitToInt d)) (Sci.base10Exponent f - 1)
+
+  exponent' :: m Scientific
   exponent' = ((\f e -> power (f e)) <$ oneOf "eE" <*> sign <*> (decimal <?> "exponent")) <?> "exponent"
+
   power = Sci.scientific 1 . fromInteger
 
 

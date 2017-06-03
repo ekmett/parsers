@@ -1,4 +1,5 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Text.Parser.Permutation
@@ -116,10 +117,11 @@ instance Functor m => Functor (Branch m) where
 -- >          tuple a b c  = (a,b,c)
 
 -- transform a permutation tree into a normal parser
-permute :: Alternative m => Permutation m a -> m a
+permute :: forall m a. Alternative m => Permutation m a -> m a
 permute (Permutation def xs)
   = asum (map branch xs ++ e)
   where
+    e :: [m a]
     e = maybe [] (pure . pure) def
     branch (Branch perm p) = flip id <$> p <*> permute perm
 

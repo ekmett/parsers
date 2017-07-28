@@ -1,3 +1,7 @@
+next
+----
+* Add a library dependency in the `doctests` test suite
+
 0.12.5
 ------
 * Allow building with GHC 8.2

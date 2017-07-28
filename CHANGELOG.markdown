@@ -1,5 +1,5 @@
-next
-----
+0.12.6
+------
 * Add a library dependency in the `doctests` test suite
 
 0.12.5

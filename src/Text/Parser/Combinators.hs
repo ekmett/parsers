@@ -142,7 +142,7 @@ sepEndBy1 :: Alternative m => m a -> m sep -> m [a]
 sepEndBy1 p sep = toList <$> sepEndByNonEmpty p sep
 
 -- | @sepEndByNonEmpty p sep@ parses /one/ or more occurrences of @p@,
--- separated and optionally ended by @sep@. Returns a non-empty of values
+-- separated and optionally ended by @sep@. Returns a non-empty list of values
 -- returned by @p@.
 sepEndByNonEmpty :: Alternative m => m a -> m sep -> m (NonEmpty a)
 sepEndByNonEmpty p sep = (:|) <$> p <*> ((sep *> sepEndBy p sep) <|> pure [])

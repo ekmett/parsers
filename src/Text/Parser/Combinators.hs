@@ -125,7 +125,7 @@ sepBy p sep = sepBy1 p sep <|> pure []
 -- | @sepBy1 p sep@ parses /one/ or more occurrences of @p@, separated
 -- by @sep@. Returns a list of values returned by @p@.
 sepBy1 :: Alternative m => m a -> m sep -> m [a]
-sepBy1 p sep = (:) <$> p <*> many (sep *> p)
+sepBy1 p sep = toList <$> sepByNonEmpty p sep
 {-# INLINE sepBy1 #-}
 
 -- | @sepByNonEmpty p sep@ parses /one/ or more occurrences of @p@, separated
@@ -138,7 +138,7 @@ sepByNonEmpty p sep = (:|) <$> p <*> many (sep *> p)
 -- separated and optionally ended by @sep@. Returns a list of values
 -- returned by @p@.
 sepEndBy1 :: Alternative m => m a -> m sep -> m [a]
-sepEndBy1 p sep = (:) <$> p <*> ((sep *> sepEndBy p sep) <|> pure [])
+sepEndBy1 p sep = toList <$> sepEndByNonEmpty p sep
 
 -- | @sepEndByNonEmpty p sep@ parses /one/ or more occurrences of @p@,
 -- separated and optionally ended by @sep@. Returns a non-empty of values

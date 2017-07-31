@@ -47,6 +47,7 @@ module Text.Parser.Combinators
   , sepEndByNonEmpty
   , sepEndBy
   , endBy1
+  , endByNonEmpty
   , endBy
   , count
   , chainl
@@ -160,6 +161,12 @@ sepEndBy p sep = sepEndBy1 p sep <|> pure []
 endBy1 :: Alternative m => m a -> m sep -> m [a]
 endBy1 p sep = some (p <* sep)
 {-# INLINE endBy1 #-}
+
+-- | @endByNonEmpty p sep@ parses /one/ or more occurrences of @p@, separated
+-- and ended by @sep@. Returns a non-empty list of values returned by @p@.
+endByNonEmpty :: Alternative m => m a -> m sep -> m (NonEmpty a)
+endByNonEmpty p sep = some1 (p <* sep)
+{-# INLINE endByNonEmpty #-}
 
 -- | @endBy p sep@ parses /zero/ or more occurrences of @p@, separated
 -- and ended by @sep@. Returns a list of values returned by @p@.

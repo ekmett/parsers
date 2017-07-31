@@ -1,3 +1,8 @@
+next
+----
+* Add `sepByNonEmpty`, `sepEndByNonEmpty`, and `endByNonEmpty` to
+  `Text.Parser.Combinators`
+
 0.12.6
 ------
 * Add a library dependency in the `doctests` test suite

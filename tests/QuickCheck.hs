@@ -32,7 +32,7 @@ import System.Exit
 -- Instead of letting quick check pick the parser framework as a test parameter
 -- it may be better to just run all tests for each parser framework.
 
-data P a = P (forall m. (Monad m, CharParsing m) => m a)
+newtype P a = P (forall m. (Monad m, CharParsing m) => m a)
 
 data TestParser a = TestParser String (P a -> String -> Either String a)
 

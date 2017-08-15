@@ -9,8 +9,8 @@ module Main
 
 import Control.Applicative
 
-import Data.Attoparsec.ByteString.Char8 (parseOnly)
-import qualified Data.ByteString.Char8 as B8
+import Data.Attoparsec.Text (parseOnly)
+import Data.String
 
 #if MIN_VERSION_base(4,7,0)
 import Data.Either
@@ -39,7 +39,7 @@ data TestParser a = TestParser String (P a -> String -> Either String a)
 instance Show (TestParser a) where show (TestParser n _) = n
 
 pAtto, pParsec, pReadP :: TestParser a
-pAtto = TestParser "attoparsec" $ \(P p) -> parseOnly p . B8.pack
+pAtto = TestParser "attoparsec" $ \(P p) -> parseOnly p . fromString
 pParsec = TestParser "parsec" $ \(P p) -> either (Left . show) Right . parse p "test input"
 pReadP = TestParser "ReadP" $ \(P p) s -> case readP_to_S p s of
   [] -> Left "parseFailed"

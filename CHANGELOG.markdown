@@ -1,5 +1,5 @@
-next
-----
+0.12.7
+------
 * Add `sepByNonEmpty`, `sepEndByNonEmpty`, and `endByNonEmpty` to
   `Text.Parser.Combinators`
 * Fix sporadic `QuickCheck` test suite failures

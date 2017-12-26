@@ -17,7 +17,7 @@ description:
   Given a few simple instances, e.g. for the class 'Text.Parser.Combinators.Parsing' in "Text.Parser.Combinators.Parsing" you
   get access to a large number of canned definitions. Instances exist for the parsers provided by @parsec@,
   @attoparsec@ and base’s "Text.Read".
-build-type:    Custom
+build-type:    Simple
 tested-with:   GHC==7.0.4, GHC==7.2.2, GHC==7.4.2, GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0.2, GHC==8.2.2
 
 extra-source-files:
@@ -25,12 +25,6 @@ extra-source-files:
   CHANGELOG.markdown
   README.markdown
   Warning.hs
-
-custom-setup
-  setup-depends:
-    base          >= 4.3 && <5,
-    Cabal         >= 1.10,
-    cabal-doctest >= 1 && <1.1
 
 source-repository head
   type: git
@@ -67,24 +61,6 @@ library
     mtl                  >= 2.0.1    && < 2.3,
     scientific           >= 0.3      && < 0.4,
     unordered-containers >= 0.2      && < 0.3
-
--- Verify the results of the examples
-test-suite doctests
-  type:    exitcode-stdio-1.0
-  main-is: doctests.hs
-  default-language: Haskell2010
-  build-depends:
-    base,
-    bytestring,
-    containers,
-    directory >= 1.0,
-    doctest >= 0.9.1,
-    filepath,
-    parsers,
-    QuickCheck,
-    quickcheck-instances
-  ghc-options: -Wall -threaded
-  hs-source-dirs: tests
 
 test-suite quickcheck
   type:    exitcode-stdio-1.0

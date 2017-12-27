@@ -1,3 +1,8 @@
+0.12.8
+------
+* Remove the `doctest` test suite, as there are no actual doctests anywhere
+  in `parsers`.
+
 0.12.7
 ------
 * Add `sepByNonEmpty`, `sepEndByNonEmpty`, and `endByNonEmpty` to

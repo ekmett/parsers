@@ -24,7 +24,6 @@ extra-source-files:
   .travis.yml
   CHANGELOG.markdown
   README.markdown
-  Warning.hs
 
 source-repository head
   type: git

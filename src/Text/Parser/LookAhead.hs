@@ -38,9 +38,7 @@ import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
 import qualified Data.Attoparsec.Types as Att
 import qualified Data.Attoparsec.Combinator as Att
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 710
 import qualified Data.Binary.Get as B
-#endif
 #if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
 #endif
@@ -91,10 +89,8 @@ instance (Parsec.Stream s m t, Show t) => LookAheadParsing (Parsec.ParsecT s u m
 instance Att.Chunk i => LookAheadParsing (Att.Parser i) where
   lookAhead = Att.lookAhead
 
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 710
 instance LookAheadParsing B.Get where
   lookAhead = B.lookAhead
-#endif
 
 instance LookAheadParsing ReadP.ReadP where
   lookAhead p = ReadP.look >>= \s ->

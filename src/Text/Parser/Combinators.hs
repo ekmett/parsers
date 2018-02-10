@@ -42,9 +42,12 @@ module Text.Parser.Combinators
   , many     -- from Control.Applicative
   , sepBy
   , sepBy1
+  , sepByNonEmpty
   , sepEndBy1
+  , sepEndByNonEmpty
   , sepEndBy
   , endBy1
+  , endByNonEmpty
   , endBy
   , count
   , chainl
@@ -71,6 +74,7 @@ import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
 import Data.Foldable (asum)
+import Data.List.NonEmpty
 #if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
 #ifdef ORPHAN_ALTERNATIVE_READP
@@ -128,14 +132,26 @@ sepBy p sep = sepBy1 p sep <|> pure []
 -- | @sepBy1 p sep@ parses /one/ or more occurrences of @p@, separated
 -- by @sep@. Returns a list of values returned by @p@.
 sepBy1 :: Alternative m => m a -> m sep -> m [a]
-sepBy1 p sep = (:) <$> p <*> many (sep *> p)
+sepBy1 p sep = toList <$> sepByNonEmpty p sep
 {-# INLINE sepBy1 #-}
+
+-- | @sepByNonEmpty p sep@ parses /one/ or more occurrences of @p@, separated
+-- by @sep@. Returns a non-empty list of values returned by @p@.
+sepByNonEmpty :: Alternative m => m a -> m sep -> m (NonEmpty a)
+sepByNonEmpty p sep = (:|) <$> p <*> many (sep *> p)
+{-# INLINE sepByNonEmpty #-}
 
 -- | @sepEndBy1 p sep@ parses /one/ or more occurrences of @p@,
 -- separated and optionally ended by @sep@. Returns a list of values
 -- returned by @p@.
 sepEndBy1 :: Alternative m => m a -> m sep -> m [a]
-sepEndBy1 p sep = p <**> ((flip (:) <$> (sep *> sepEndBy p sep)) <|> pure pure)
+sepEndBy1 p sep = toList <$> sepEndByNonEmpty p sep
+
+-- | @sepEndByNonEmpty p sep@ parses /one/ or more occurrences of @p@,
+-- separated and optionally ended by @sep@. Returns a non-empty list of values
+-- returned by @p@.
+sepEndByNonEmpty :: Alternative m => m a -> m sep -> m (NonEmpty a)
+sepEndByNonEmpty p sep = (:|) <$> p <*> ((sep *> sepEndBy p sep) <|> pure [])
 
 -- | @sepEndBy p sep@ parses /zero/ or more occurrences of @p@,
 -- separated and optionally ended by @sep@, ie. haskell style
@@ -151,6 +167,12 @@ sepEndBy p sep = sepEndBy1 p sep <|> pure []
 endBy1 :: Alternative m => m a -> m sep -> m [a]
 endBy1 p sep = some (p <* sep)
 {-# INLINE endBy1 #-}
+
+-- | @endByNonEmpty p sep@ parses /one/ or more occurrences of @p@, separated
+-- and ended by @sep@. Returns a non-empty list of values returned by @p@.
+endByNonEmpty :: Alternative m => m a -> m sep -> m (NonEmpty a)
+endByNonEmpty p sep = some1 (p <* sep)
+{-# INLINE endByNonEmpty #-}
 
 -- | @endBy p sep@ parses /zero/ or more occurrences of @p@, separated
 -- and ended by @sep@. Returns a list of values returned by @p@.
@@ -258,7 +280,7 @@ class Alternative m => Parsing m where
   unexpected :: String -> m a
 #ifdef USE_DEFAULT_SIGNATURES
   default unexpected :: (MonadTrans t, Monad n, Parsing n, m ~ t n) =>
-                        String -> t n a
+                        String -> m a
   unexpected = lift . unexpected
   {-# INLINE unexpected #-}
 #endif
@@ -269,7 +291,7 @@ class Alternative m => Parsing m where
   -- >  eof  = notFollowedBy anyChar <?> "end of input"
   eof :: m ()
 #ifdef USE_DEFAULT_SIGNATURES
-  default eof :: (MonadTrans t, Monad n, Parsing n, m ~ t n) => t n ()
+  default eof :: (MonadTrans t, Monad n, Parsing n, m ~ t n) => m ()
   eof = lift eof
   {-# INLINE eof #-}
 #endif

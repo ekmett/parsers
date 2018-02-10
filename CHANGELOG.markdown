@@ -1,3 +1,26 @@
+0.12.8
+------
+* Remove the `doctest` test suite, as there are no actual doctests anywhere
+  in `parsers`.
+
+0.12.7
+------
+* Add `sepByNonEmpty`, `sepEndByNonEmpty`, and `endByNonEmpty` to
+  `Text.Parser.Combinators`
+* Fix sporadic `QuickCheck` test suite failures
+
+0.12.6
+------
+* Add a library dependency in the `doctests` test suite
+
+0.12.5
+------
+* Allow building with GHC 8.2
+* Add `mtl` instances for `Unspaced`, `Unhighlighted`, and `Unlined`
+* Revamp `Setup.hs` to use `cabal-doctest`. This makes it build
+  with `Cabal-2.0`, and makes the `doctest`s work with `cabal new-build` and
+  sandboxes.
+
 0.12.4
 ------
 * Allow `transformers` 0.5

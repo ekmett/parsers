@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -106,7 +107,7 @@ haskellCommentStyle = CommentStyle "{-" "-}" "--" True
 
 -- | Use this to easily build the definition of whiteSpace for your MonadParser
 --   given a comment style and an underlying someWhiteSpace parser
-buildSomeSpaceParser :: CharParsing m => m () -> CommentStyle -> m ()
+buildSomeSpaceParser :: forall m. CharParsing m => m () -> CommentStyle -> m ()
 buildSomeSpaceParser simpleSpace (CommentStyle startStyle endStyle lineStyle nestingStyle)
   | noLine && noMulti  = skipSome (simpleSpace <?> "")
   | noLine             = skipSome (simpleSpace <|> multiLineComment <?> "")
@@ -115,6 +116,8 @@ buildSomeSpaceParser simpleSpace (CommentStyle startStyle endStyle lineStyle nes
   where
     noLine  = null lineStyle
     noMulti = null startStyle
+
+    oneLineComment, multiLineComment, inComment, inCommentMulti :: m ()
     oneLineComment = try (string lineStyle) *> skipMany (satisfy (/= '\n'))
     multiLineComment = try (string startStyle) *> inComment
     inComment = if nestingStyle then inCommentMulti else inCommentSingle
@@ -124,7 +127,10 @@ buildSomeSpaceParser simpleSpace (CommentStyle startStyle endStyle lineStyle nes
       <|> skipSome (noneOf startEnd) *> inCommentMulti
       <|> oneOf startEnd *> inCommentMulti
       <?> "end of comment"
+
     startEnd = nub (endStyle ++ startStyle)
+
+    inCommentSingle :: m ()
     inCommentSingle
       =   () <$ try (string endStyle)
       <|> skipSome (noneOf startEnd) *> inCommentSingle

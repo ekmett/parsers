@@ -1,6 +1,8 @@
 parsers
 =======
 
+[![Hackage](https://img.shields.io/hackage/v/parsers.svg)](https://hackage.haskell.org/package/parsers) [![Build Status](https://secure.travis-ci.org/ekmett/parsers.png?branch=master)](http://travis-ci.org/ekmett/parsers)
+
 Goals
 -----
 

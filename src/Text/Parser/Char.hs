@@ -183,7 +183,7 @@ class Parsing m => CharParsing m where
 #ifdef USE_DEFAULT_SIGNATURES
   default satisfy :: (MonadTrans t, CharParsing n, Monad n, m ~ t n) =>
                      (Char -> Bool) ->
-                     t n Char
+                     m Char
   satisfy = lift . satisfy
 #endif
   -- | @char c@ parses a single character @c@. Returns the parsed

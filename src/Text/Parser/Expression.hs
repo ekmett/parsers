@@ -110,23 +110,34 @@ buildExpressionParser operators simpleExpr
     = foldl makeParser simpleExpr operators
     where
       makeParser term ops
-        = let (rassoc,lassoc,nassoc,prefix,postfix) = foldr splitOp ([],[],[],[],[]) ops
+        = let rassoc, lassoc, nassoc :: [m (a -> a -> a)]
+              prefix, postfix :: [m (a -> a)]
+              (rassoc,lassoc,nassoc,prefix,postfix) = foldr splitOp ([],[],[],[],[]) ops
+
+              rassocOp, lassocOp, nassocOp :: m (a -> a -> a)
               rassocOp   = choice rassoc
               lassocOp   = choice lassoc
               nassocOp   = choice nassoc
+
+              prefixOp, postfixOp :: m (a -> a)
               prefixOp   = choice prefix  <?> ""
               postfixOp  = choice postfix <?> ""
 
+              ambiguous :: String -> m x -> m y
               ambiguous assoc op = try $ op *> empty <?> ("ambiguous use of a " ++ assoc ++ "-associative operator")
 
+              ambiguousRight, ambiguousLeft, ambiguousNon :: m y
               ambiguousRight    = ambiguous "right" rassocOp
               ambiguousLeft     = ambiguous "left" lassocOp
               ambiguousNon      = ambiguous "non" nassocOp
 
+              termP      :: m a
               termP      = (prefixP <*> term) <**> postfixP
 
+              postfixP   :: m (a -> a)
               postfixP   = postfixOp <|> pure id
 
+              prefixP    :: m (a -> a)
               prefixP    = prefixOp <|> pure id
 
               rassocP, rassocP1, lassocP, lassocP1, nassocP :: m (a -> a)

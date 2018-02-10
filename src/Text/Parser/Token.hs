@@ -2,6 +2,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE UndecidableInstances #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -93,6 +96,9 @@ import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
+import Control.Monad.State.Class as Class
+import Control.Monad.Reader.Class as Class
+import Control.Monad.Writer.Class as Class
 import Data.Char
 import Data.Functor.Identity
 import qualified Data.HashSet as HashSet
@@ -124,8 +130,9 @@ whiteSpace = someSpace <|> pure ()
 -- sequences. The literal character is parsed according to the grammar
 -- rules defined in the Haskell report (which matches most programming
 -- languages quite closely).
-charLiteral :: TokenParsing m => m Char
+charLiteral :: forall m. TokenParsing m => m Char
 charLiteral = token (highlight CharLiteral lit) where
+  lit :: m Char
   lit = between (char '\'') (char '\'' <?> "end of character") characterChar
     <?> "character"
 {-# INLINE charLiteral #-}
@@ -135,45 +142,63 @@ charLiteral = token (highlight CharLiteral lit) where
 -- gaps. The literal string is parsed according to the grammar rules
 -- defined in the Haskell report (which matches most programming
 -- languages quite closely).
-stringLiteral :: (TokenParsing m, IsString s) => m s
+stringLiteral :: forall m s. (TokenParsing m, IsString s) => m s
 stringLiteral = fromString <$> token (highlight StringLiteral lit) where
+  lit :: m [Char]
   lit = Prelude.foldr (maybe id (:)) ""
     <$> between (char '"') (char '"' <?> "end of string") (many stringChar)
     <?> "string"
+
+  stringChar :: m (Maybe Char)
   stringChar = Just <$> stringLetter
            <|> stringEscape
        <?> "string character"
-  stringLetter    = satisfy (\c -> (c /= '"') && (c /= '\\') && (c > '\026'))
 
+  stringLetter :: m Char
+  stringLetter = satisfy (\c -> (c /= '"') && (c /= '\\') && (c > '\026'))
+
+  stringEscape :: m (Maybe Char)
   stringEscape = highlight EscapeCode $ char '\\' *> esc where
+    esc :: m (Maybe Char)
     esc = Nothing <$ escapeGap
       <|> Nothing <$ escapeEmpty
       <|> Just <$> escapeCode
+
+  escapeEmpty, escapeGap :: m Char
   escapeEmpty = char '&'
   escapeGap = skipSome space *> (char '\\' <?> "end of string gap")
 {-# INLINE stringLiteral #-}
 
 -- | This token parser behaves as 'stringLiteral', but for single-quoted
 -- strings.
-stringLiteral' :: (TokenParsing m, IsString s) => m s
+stringLiteral' :: forall m s. (TokenParsing m, IsString s) => m s
 stringLiteral' = fromString <$> token (highlight StringLiteral lit) where
+  lit :: m [Char]
   lit = Prelude.foldr (maybe id (:)) ""
     <$> between (char '\'') (char '\'' <?> "end of string") (many stringChar)
     <?> "string"
+
+  stringChar :: m (Maybe Char)
   stringChar = Just <$> stringLetter
            <|> stringEscape
        <?> "string character"
-  stringLetter    = satisfy (\c -> (c /= '\'') && (c /= '\\') && (c > '\026'))
 
+  stringLetter :: m Char
+  stringLetter = satisfy (\c -> (c /= '\'') && (c /= '\\') && (c > '\026'))
+
+  stringEscape :: m (Maybe Char)
   stringEscape = highlight EscapeCode $ char '\\' *> esc where
+    esc :: m (Maybe Char)
     esc = Nothing <$ escapeGap
       <|> Nothing <$ escapeEmpty
       <|> Just <$> escapeCode
+
+  escapeEmpty, escapeGap :: m Char
   escapeEmpty = char '&'
   escapeGap = skipSome space *> (char '\\' <?> "end of string gap")
 {-# INLINE stringLiteral' #-}
 
--- | This token parser parses a natural number (a positive whole
+-- | This token parser parses a natural number (a non-negative whole
 -- number). Returns the value of the number. The number can be
 -- specified in 'decimal', 'hexadecimal' or
 -- 'octal'. The number is parsed according to the grammar
@@ -188,9 +213,10 @@ natural = token natural'
 -- number can be specified in 'decimal', 'hexadecimal'
 -- or 'octal'. The number is parsed according
 -- to the grammar rules in the Haskell report.
-integer :: TokenParsing m => m Integer
+integer :: forall m. TokenParsing m => m Integer
 integer = token (token (highlight Operator sgn <*> natural')) <?> "integer"
   where
+  sgn :: m (Integer -> Integer)
   sgn = negate <$ char '-'
     <|> id <$ char '+'
     <|> pure id
@@ -234,9 +260,11 @@ naturalOrScientific = token (highlight Number natFloating <?> "number")
 
 -- | This token parser is like 'naturalOrScientific', but handles
 -- leading @-@ or @+@.
-integerOrScientific :: TokenParsing m => m (Either Integer Scientific)
+integerOrScientific :: forall m. TokenParsing m => m (Either Integer Scientific)
 integerOrScientific = token (highlight Number ios <?> "number")
-  where ios = mneg <$> optional (oneOf "+-") <*> natFloating
+  where ios :: m (Either Integer Scientific)
+        ios = mneg <$> optional (oneOf "+-") <*> natFloating
+
         mneg (Just '-') nd = either (Left . negate) (Right . negate) nd
         mneg _          nd = nd
 {-# INLINE integerOrScientific #-}
@@ -578,27 +606,38 @@ charLetter = satisfy (\c -> (c /= '\'') && (c /= '\\') && (c > '\026'))
 --
 -- This parser does NOT swallow trailing whitespace
 
-escapeCode :: TokenParsing m => m Char
+escapeCode :: forall m. TokenParsing m => m Char
 escapeCode = (charEsc <|> charNum <|> charAscii <|> charControl) <?> "escape code"
   where
+  charControl, charNum :: m Char
   charControl = (\c -> toEnum (fromEnum c - fromEnum '@')) <$> (char '^' *> (upper <|> char '@'))
   charNum = toEnum <$> num
     where
+      num :: m Int
       num = bounded 10 maxchar
         <|> (char 'o' *> bounded 8 maxchar)
         <|> (char 'x' *> bounded 16 maxchar)
       maxchar = fromEnum (maxBound :: Char)
 
+  bounded :: Int -> Int -> m Int
   bounded base bnd = foldl' (\x d -> base * x + digitToInt d) 0
                  <$> bounded' (take base thedigits) (map digitToInt $ showIntAtBase base intToDigit bnd "")
     where
+      thedigits :: [m Char]
       thedigits = map char ['0'..'9'] ++ map oneOf (transpose [['A'..'F'],['a'..'f']])
+
+      toomuch :: m a
       toomuch = unexpected "out-of-range numeric escape sequence"
+
+      bounded', bounded'' :: [m Char] -> [Int] -> m [Char]
       bounded' dps@(zero:_) bds = skipSome zero *> ([] <$ notFollowedBy (choice dps) <|> bounded'' dps bds)
                               <|> bounded'' dps bds
       bounded' []           _   = error "bounded called with base 0"
       bounded'' dps []         = [] <$ notFollowedBy (choice dps) <|> toomuch
-      bounded'' dps (bd : bds) = let anyd = choice dps
+      bounded'' dps (bd : bds) = let anyd :: m Char
+                                     anyd = choice dps
+
+                                     nomore :: m ()
                                      nomore = notFollowedBy anyd <|> toomuch
                                      (low, ex : high) = splitAt bd dps
                                   in ((:) <$> choice low <*> atMost (length bds) anyd) <* nomore
@@ -608,10 +647,16 @@ escapeCode = (charEsc <|> charNum <|> charAscii <|> charControl) <?> "escape cod
                                             else empty
       atMost n p | n <= 0    = pure []
                  | otherwise = ((:) <$> p <*> atMost (n - 1) p) <|> pure []
+
+  charEsc :: m Char
   charEsc = choice $ parseEsc <$> escMap
+
   parseEsc (c,code) = code <$ char c
   escMap = zip "abfnrtv\\\"\'" "\a\b\f\n\r\t\v\\\"\'"
+
+  charAscii :: m Char
   charAscii = choice $ parseAscii <$> asciiMap
+
   parseAscii (asc,code) = try $ code <$ string asc
   asciiMap = zip (ascii3codes ++ ascii2codes) (ascii3 ++ ascii2)
   ascii2codes, ascii3codes :: [String]
@@ -624,7 +669,7 @@ escapeCode = (charEsc <|> charNum <|> charAscii <|> charControl) <?> "escape cod
   ascii2 = "\BS\HT\LF\VT\FF\CR\SO\SI\EM\FS\GS\RS\US\SP"
   ascii3 = "\NUL\SOH\STX\ETX\EOT\ENQ\ACK\BEL\DLE\DC1\DC2\DC3\DC4\NAK\SYN\ETB\CAN\SUB\ESC\DEL"
 
--- | This parser parses a natural number (a positive whole
+-- | This parser parses a natural number (a non-negative whole
 -- number). Returns the value of the number. The number can be
 -- specified in 'decimal', 'hexadecimal' or
 -- 'octal'. The number is parsed according to the grammar
@@ -670,13 +715,18 @@ floating :: TokenParsing m => m Scientific
 floating = decimal <**> fractExponent
 {-# INLINE floating #-}
 
-fractExponent :: TokenParsing m => m (Integer -> Scientific)
+fractExponent :: forall m. TokenParsing m => m (Integer -> Scientific)
 fractExponent = (\fract expo n -> (fromInteger n + fract) * expo) <$> fraction <*> option 1 exponent'
             <|> (\expo n -> fromInteger n * expo) <$> exponent'
  where
+  fraction :: m Scientific
   fraction = foldl' op 0 <$> (char '.' *> (some digit <?> "fraction"))
+
   op f d = f + Sci.scientific (fromIntegral (digitToInt d)) (Sci.base10Exponent f - 1)
+
+  exponent' :: m Scientific
   exponent' = ((\f e -> power (f e)) <$ oneOf "eE" <*> sign <*> (decimal <?> "exponent")) <?> "exponent"
+
   power = Sci.scientific 1 . fromInteger
 
 
@@ -695,7 +745,7 @@ fractFloat :: TokenParsing m => m (Integer -> Either Integer Scientific)
 fractFloat = (Right .) <$> fractExponent
 {-# INLINE fractFloat #-}
 
--- | Parses a positive whole number in the decimal system. Returns the
+-- | Parses a non-negative whole number in the decimal system. Returns the
 -- value of the number.
 --
 -- This parser does NOT swallow trailing whitespace
@@ -703,7 +753,7 @@ decimal :: TokenParsing m => m Integer
 decimal = number 10 digit
 {-# INLINE decimal #-}
 
--- | Parses a positive whole number in the hexadecimal system. The number
+-- | Parses a non-negative whole number in the hexadecimal system. The number
 -- should be prefixed with \"x\" or \"X\". Returns the value of the
 -- number.
 --
@@ -712,7 +762,7 @@ hexadecimal :: TokenParsing m => m Integer
 hexadecimal = oneOf "xX" *> number 16 hexDigit
 {-# INLINE hexadecimal #-}
 
--- | Parses a positive whole number in the octal system. The number
+-- | Parses a non-negative whole number in the octal system. The number
 -- should be prefixed with \"o\" or \"O\". Returns the value of the
 -- number.
 --
@@ -742,6 +792,26 @@ instance Parsing m => Parsing (Unhighlighted m) where
 instance MonadTrans Unhighlighted where
   lift = Unhighlighted
   {-# INLINE lift #-}
+
+instance MonadState s m => MonadState s (Unhighlighted m) where
+  get = lift Class.get
+  {-# INLINE get #-}
+  put = lift . Class.put
+  {-# INLINE put #-}
+
+instance MonadReader e m => MonadReader e (Unhighlighted m) where
+  ask = lift Class.ask
+  {-# INLINE ask #-}
+  local f = Unhighlighted . Class.local f . runUnhighlighted
+  {-# INLINE local #-}
+
+instance MonadWriter e m => MonadWriter e (Unhighlighted m) where
+  tell = lift . Class.tell
+  {-# INLINE tell #-}
+  listen = Unhighlighted . Class.listen . runUnhighlighted
+  {-# INLINE listen #-}
+  pass = Unhighlighted . Class.pass . runUnhighlighted
+  {-# INLINE pass #-}
 
 instance TokenParsing m => TokenParsing (Unhighlighted m) where
   nesting (Unhighlighted m) = Unhighlighted (nesting m)
@@ -774,6 +844,26 @@ instance MonadTrans Unspaced where
   lift = Unspaced
   {-# INLINE lift #-}
 
+instance MonadState s m => MonadState s (Unspaced m) where
+  get = lift Class.get
+  {-# INLINE get #-}
+  put = lift . Class.put
+  {-# INLINE put #-}
+
+instance MonadReader e m => MonadReader e (Unspaced m) where
+  ask = lift Class.ask
+  {-# INLINE ask #-}
+  local f = Unspaced . Class.local f . runUnspaced
+  {-# INLINE local #-}
+
+instance MonadWriter e m => MonadWriter e (Unspaced m) where
+  tell = lift . Class.tell
+  {-# INLINE tell #-}
+  listen = Unspaced . Class.listen . runUnspaced
+  {-# INLINE listen #-}
+  pass = Unspaced . Class.pass . runUnspaced
+  {-# INLINE pass #-}
+
 instance TokenParsing m => TokenParsing (Unspaced m) where
   nesting (Unspaced m) = Unspaced (nesting m)
   {-# INLINE nesting #-}
@@ -804,6 +894,26 @@ instance Parsing m => Parsing (Unlined m) where
 instance MonadTrans Unlined where
   lift = Unlined
   {-# INLINE lift #-}
+
+instance MonadState s m => MonadState s (Unlined m) where
+  get = lift Class.get
+  {-# INLINE get #-}
+  put = lift . Class.put
+  {-# INLINE put #-}
+
+instance MonadReader e m => MonadReader e (Unlined m) where
+  ask = lift Class.ask
+  {-# INLINE ask #-}
+  local f = Unlined . Class.local f . runUnlined
+  {-# INLINE local #-}
+
+instance MonadWriter e m => MonadWriter e (Unlined m) where
+  tell = lift . Class.tell
+  {-# INLINE tell #-}
+  listen = Unlined . Class.listen . runUnlined
+  {-# INLINE listen #-}
+  pass = Unlined . Class.pass . runUnlined
+  {-# INLINE pass #-}
 
 instance TokenParsing m => TokenParsing (Unlined m) where
   nesting (Unlined m) = Unlined (nesting m)

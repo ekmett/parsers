@@ -38,7 +38,7 @@ module Text.Parser.Combinators
   , optional -- from Control.Applicative, parsec optionMaybe
   , skipOptional -- parsec optional
   , between
-  , surBy
+  , surroundedBy
   , some     -- from Control.Applicative, parsec many1
   , many     -- from Control.Applicative
   , sepBy
@@ -118,11 +118,11 @@ between :: Applicative m => m bra -> m ket -> m a -> m a
 between bra ket p = bra *> p <* ket
 {-# INLINE between #-}
 
--- | @p \`surBy\` f@ is @p@ surrounded by @f@. Shortcut for @between f f p@.
+-- | @p \`surroundedBy\` f@ is @p@ surrounded by @f@. Shortcut for @between f f p@.
 -- As in @between@, returns the value returned by @p@.
-surBy :: Applicative m => m a -> m sur -> m a
-surBy p bound = between bound bound p
-{-# INLINE surBy #-}
+surroundedBy :: Applicative m => m a -> m sur -> m a
+surroundedBy p bound = between bound bound p
+{-# INLINE surroundedBy #-}
 
 -- | @sepBy p sep@ parses /zero/ or more occurrences of @p@, separated
 -- by @sep@. Returns a list of values returned by @p@.

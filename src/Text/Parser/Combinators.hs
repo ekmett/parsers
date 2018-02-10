@@ -61,6 +61,7 @@ module Text.Parser.Combinators
 
 import Control.Applicative
 import Control.Monad (MonadPlus(..))
+import Control.Monad (when, unless)
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict
@@ -82,6 +83,7 @@ import Data.Traversable (sequenceA)
 import qualified Text.Parsec as Parsec
 import qualified Data.Attoparsec.Types as Att
 import qualified Data.Attoparsec.Combinator as Att
+import qualified Data.Binary.Get as B
 import qualified Text.ParserCombinators.ReadP as ReadP
 
 -- | @choice ps@ tries to apply the parsers in the list @ps@ in order,
@@ -423,6 +425,16 @@ instance Att.Chunk t => Parsing (Att.Parser t) where
   skipSome        = Att.skipMany1
   unexpected      = fail
   eof             = Att.endOfInput
+  notFollowedBy p = optional p >>= maybe (pure ()) (unexpected . show)
+
+instance Parsing B.Get where
+  try             = id
+  (<?>)           = flip B.label
+  skipMany p      = do skipped <- True <$ p <|> pure False
+                       when skipped $ skipMany p
+  unexpected      = fail
+  eof             = do isEof <- B.isEmpty
+                       unless isEof $ fail "Parsing.eof"
   notFollowedBy p = optional p >>= maybe (pure ()) (unexpected . show)
 
 instance Parsing ReadP.ReadP where

@@ -1,3 +1,9 @@
+next [????.??.??]
+-----------------
+* Add instances for the `Get` type from `binary`.
+* Add a `surroundedBy` function, as a shorthand for `between bra ket` when
+  `bra` and `ket` are the same.
+
 0.12.8
 ------
 * Remove the `doctest` test suite, as there are no actual doctests anywhere

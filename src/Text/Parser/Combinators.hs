@@ -61,8 +61,7 @@ module Text.Parser.Combinators
   ) where
 
 import Control.Applicative
-import Control.Monad (MonadPlus(..))
-import Control.Monad (when, unless)
+import Control.Monad (MonadPlus(..), when, unless)
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict

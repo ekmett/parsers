@@ -110,7 +110,7 @@ import Data.Monoid
 import Data.Scientific ( Scientific )
 import qualified Data.Scientific as Sci
 import Data.String
-import Data.Text hiding (empty,zip,foldl,foldl',take,map,length,splitAt,null,transpose)
+import Data.Text hiding (empty,zip,foldl',take,map,length,splitAt,null,transpose)
 import Numeric (showIntAtBase)
 import qualified Text.ParserCombinators.ReadP as ReadP
 import qualified Text.Parsec as Parsec

@@ -39,6 +39,11 @@ source-repository head
   type: git
   location: git://github.com/ekmett/parsers.git
 
+flag binary
+  default: True
+  description:
+    You can disable the use of the `binary` package using `-f-binary`.
+
 library
   default-language: Haskell2010
   exposed-modules:
@@ -69,8 +74,10 @@ library
     transformers         >= 0.2      && < 0.6,
     mtl                  >= 2.0.1    && < 2.3,
     scientific           >= 0.3      && < 0.4,
-    unordered-containers >= 0.2      && < 0.3,
-    binary               >= 0.7.2    && < 1
+    unordered-containers >= 0.2      && < 0.3
+
+  if flag(binary)
+    build-depends: binary >= 0.7.2 && < 1
 
 test-suite quickcheck
   type:    exitcode-stdio-1.0

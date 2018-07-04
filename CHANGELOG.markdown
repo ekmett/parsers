@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+0.12.9 [2018.07.04]
+-------------------
 * Add instances for the `Get` type from `binary`.
 * Add a `surroundedBy` function, as a shorthand for `between bra ket` when
   `bra` and `ket` are the same.

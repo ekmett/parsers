@@ -44,6 +44,16 @@ flag binary
   description:
     You can disable the use of the `binary` package using `-f-binary`.
 
+flag parsec
+  default: True
+  description:
+    You can disable the use of the `parsec` package using `-f-parsec`.
+
+flag attoparsec
+  default: True
+  description:
+    You can disable the use of the `attoparsec` package using `-f-attoparsec`.
+
 library
   default-language: Haskell2010
   exposed-modules:
@@ -68,8 +78,6 @@ library
     charset              >= 0.3      && < 1,
     containers           >= 0.4      && < 0.7,
     semigroups           >= 0.12     && < 1,
-    parsec               >= 3.1      && < 3.2,
-    attoparsec           >= 0.12.1.4 && < 0.14,
     text                 >= 0.10     && < 1.3,
     transformers         >= 0.2      && < 0.6,
     mtl                  >= 2.0.1    && < 2.3,
@@ -77,19 +85,26 @@ library
     unordered-containers >= 0.2      && < 0.3
 
   if flag(binary)
-    build-depends: binary >= 0.7.2 && < 1
+    build-depends: binary     >= 0.7.2    && < 1
+  if flag(parsec)
+    build-depends: parsec     >= 3.1      && < 3.2
+  if flag(attoparsec)
+    build-depends: attoparsec >= 0.12.1.4 && < 0.14
 
 test-suite quickcheck
   type:    exitcode-stdio-1.0
   main-is: QuickCheck.hs
   default-language: Haskell2010
   build-depends:
-    attoparsec,
     base == 4.*,
     bytestring,
-    parsec >= 3,
     parsers,
     QuickCheck,
     quickcheck-instances
   ghc-options: -Wall -threaded
   hs-source-dirs: tests
+
+  if flag(parsec)
+    build-depends: parsec >= 3
+  if flag(attoparsec)
+    build-depends: attoparsec

@@ -69,10 +69,16 @@ import Data.Monoid
 #endif
 import Data.Text
 import qualified Text.ParserCombinators.ReadP as ReadP
+import Text.Parser.Combinators
+
+#ifdef MIN_VERSION_parsec
 import qualified Text.Parsec as Parsec
+#endif
+
+#ifdef MIN_VERSION_attoparsec
 import qualified Data.Attoparsec.Types as Att
 import qualified Data.Attoparsec.Combinator as Att
-import Text.Parser.Combinators
+#endif
 
 -- | @oneOf cs@ succeeds if the current character is in the supplied
 -- list of characters @cs@. Returns the parsed character. See also
@@ -339,17 +345,21 @@ instance (CharParsing m, MonadPlus m) => CharParsing (IdentityT m) where
   text = lift . text
   {-# INLINE text #-}
 
+#ifdef MIN_VERSION_parsec
 instance Parsec.Stream s m Char => CharParsing (Parsec.ParsecT s u m) where
   satisfy   = Parsec.satisfy
   char      = Parsec.char
   notChar c = Parsec.satisfy (/= c)
   anyChar   = Parsec.anyChar
   string    = Parsec.string
+#endif
 
+#ifdef MIN_VERSION_attoparsec
 instance Att.Chunk t => CharParsing (Att.Parser t) where
   satisfy p = fmap e2c $ Att.satisfyElem $ p . e2c
     where e2c = Att.chunkElemToChar (undefined :: t)
   {-# INLINE satisfy #-}
+#endif
 
 instance CharParsing ReadP.ReadP where
   satisfy   = ReadP.satisfy

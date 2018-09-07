@@ -80,9 +80,16 @@ import Data.Orphans ()
 #endif
 import Data.Traversable (sequenceA)
 #endif
+
+#ifdef MIN_VERSION_parsec
 import qualified Text.Parsec as Parsec
+#endif
+
+#ifdef MIN_VERSION_attoparsec
 import qualified Data.Attoparsec.Types as Att
 import qualified Data.Attoparsec.Combinator as Att
+#endif 
+
 import qualified Text.ParserCombinators.ReadP as ReadP
 
 #ifdef MIN_VERSION_binary
@@ -419,6 +426,7 @@ instance (Parsing m, Monad m) => Parsing (IdentityT m) where
   notFollowedBy (IdentityT m) = IdentityT $ notFollowedBy m
   {-# INLINE notFollowedBy #-}
 
+#ifdef MIN_VERSION_parsec
 instance (Parsec.Stream s m t, Show t) => Parsing (Parsec.ParsecT s u m) where
   try           = Parsec.try
   (<?>)         = (Parsec.<?>)
@@ -427,7 +435,9 @@ instance (Parsec.Stream s m t, Show t) => Parsing (Parsec.ParsecT s u m) where
   unexpected    = Parsec.unexpected
   eof           = Parsec.eof
   notFollowedBy = Parsec.notFollowedBy
+#endif
 
+#ifdef MIN_VERSION_attoparsec
 instance Att.Chunk t => Parsing (Att.Parser t) where
   try             = Att.try
   (<?>)           = (Att.<?>)
@@ -436,6 +446,7 @@ instance Att.Chunk t => Parsing (Att.Parser t) where
   unexpected      = fail
   eof             = Att.endOfInput
   notFollowedBy p = optional p >>= maybe (pure ()) (unexpected . show)
+#endif 
 
 #ifdef MIN_VERSION_binary
 instance Parsing B.Get where

@@ -113,11 +113,17 @@ import Data.String
 import Data.Text hiding (empty,zip,foldl',take,map,length,splitAt,null,transpose)
 import Numeric (showIntAtBase)
 import qualified Text.ParserCombinators.ReadP as ReadP
-import qualified Text.Parsec as Parsec
-import qualified Data.Attoparsec.Types as Att
 import Text.Parser.Char
 import Text.Parser.Combinators
 import Text.Parser.Token.Highlight
+
+#ifdef MIN_VERSION_parsec
+import qualified Text.Parsec as Parsec
+#endif
+
+#ifdef MIN_VERSION_attoparsec
+import qualified Data.Attoparsec.Types as Att
+#endif
 
 -- | Skip zero or more bytes worth of white space. More complex parsers are
 -- free to consider comments as white space.
@@ -925,8 +931,12 @@ instance TokenParsing m => TokenParsing (Unlined m) where
   highlight h (Unlined m) = Unlined (highlight h m)
   {-# INLINE highlight #-}
 
+#ifdef MIN_VERSION_parsec
 instance Parsec.Stream s m Char => TokenParsing (Parsec.ParsecT s u m)
+#endif
 
+#ifdef MIN_VERSION_attoparsec
 instance Att.Chunk t => TokenParsing (Att.Parser t)
+#endif
 
 instance TokenParsing ReadP.ReadP

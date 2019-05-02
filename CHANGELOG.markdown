@@ -1,3 +1,8 @@
+next [????.??.??]
+-----------------
+* Make the `parsec` and `attoparsec` dependencies optional with the use of
+  `Cabal` flags of the same names.
+
 0.12.9 [2018.07.04]
 -------------------
 * Add instances for the `Get` type from `binary`.

@@ -72,6 +72,8 @@ library
   ghc-options: -Wall -fno-warn-wrong-do-bind -fwarn-monomorphism-restriction -fwarn-incomplete-record-updates
   if impl(ghc >= 7.2)
     ghc-options: -fwarn-identities -fwarn-incomplete-uni-patterns
+  if impl(ghc >= 7.10)
+    ghc-options: -fno-warn-trustworthy-safe
 
   build-depends:
     base                 >= 4.3      && < 5,

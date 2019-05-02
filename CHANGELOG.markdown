@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+0.12.10 [2019.05.02]
+--------------------
 * Make the `parsec` and `attoparsec` dependencies optional with the use of
   `Cabal` flags of the same names.
 

@@ -3,7 +3,6 @@ no-tests-no-benchmarks: False
 unconstrained:          False
 allow-failures:         <7.3
 hlint:                  True
-hlint-options:          --cpp-ansi --cpp-define=HLINT
 irc-channels:           irc.freenode.org#haskell-lens
 
 constraint-set no-binary

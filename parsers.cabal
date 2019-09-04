@@ -31,10 +31,10 @@ tested-with:   GHC==7.0.4
              , GHC==8.8.1
 
 extra-source-files:
+  .hlint.yaml
   .travis.yml
   CHANGELOG.markdown
   README.markdown
-  HLint.hs
 
 source-repository head
   type: git

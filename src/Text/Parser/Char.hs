@@ -69,6 +69,7 @@ import Data.Monoid
 #endif
 import Data.Text
 import qualified Text.ParserCombinators.ReadP as ReadP
+import qualified Text.ParserCombinators.ReadPrec as ReadPrec
 import Text.Parser.Combinators
 
 #ifdef MIN_VERSION_parsec
@@ -367,3 +368,7 @@ instance CharParsing ReadP.ReadP where
   notChar c = ReadP.satisfy (/= c)
   anyChar   = ReadP.get
   string    = ReadP.string
+
+instance CharParsing ReadPrec.ReadPrec where
+  satisfy = ReadPrec.lift . satisfy
+  anyChar = ReadPrec.get

@@ -91,6 +91,7 @@ import qualified Data.Attoparsec.Combinator as Att
 #endif 
 
 import qualified Text.ParserCombinators.ReadP as ReadP
+import qualified Text.ParserCombinators.ReadPrec as ReadPrec
 
 #ifdef MIN_VERSION_binary
 import Control.Monad (when, unless)
@@ -468,4 +469,14 @@ instance Parsing ReadP.ReadP where
   unexpected = const ReadP.pfail
   eof        = ReadP.eof
   notFollowedBy p = ((Just <$> p) ReadP.<++ pure Nothing)
+    >>= maybe (pure ()) (unexpected . show)
+
+instance Parsing ReadPrec.ReadPrec where
+  try        = id
+  (<?>)      = const
+  skipMany p = ReadPrec.readP_to_Prec (skipMany . ReadPrec.readPrec_to_P p)
+  skipSome p = ReadPrec.readP_to_Prec (skipSome . ReadPrec.readPrec_to_P p)
+  unexpected = const ReadPrec.pfail
+  eof        = ReadPrec.readP_to_Prec (const eof)
+  notFollowedBy p = ((Just <$> p) ReadPrec.<++ pure Nothing)
     >>= maybe (pure ()) (unexpected . show)

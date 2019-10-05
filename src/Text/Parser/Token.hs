@@ -113,6 +113,7 @@ import Data.String
 import Data.Text hiding (empty,zip,foldl',take,map,length,splitAt,null,transpose)
 import Numeric (showIntAtBase)
 import qualified Text.ParserCombinators.ReadP as ReadP
+import qualified Text.ParserCombinators.ReadPrec as ReadPrec
 import Text.Parser.Char
 import Text.Parser.Combinators
 import Text.Parser.Token.Highlight
@@ -940,3 +941,4 @@ instance Att.Chunk t => TokenParsing (Att.Parser t)
 #endif
 
 instance TokenParsing ReadP.ReadP
+instance TokenParsing ReadPrec.ReadPrec

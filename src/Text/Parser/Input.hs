@@ -22,6 +22,7 @@ module Text.Parser.Input where
 
 import Control.Applicative (Alternative ((<|>)))
 import Control.Monad (void)
+import qualified Data.List as List
 import Data.String (IsString (fromString))
 import Text.ParserCombinators.ReadP (ReadP)
 import qualified Text.ParserCombinators.ReadP as ReadP
@@ -150,13 +151,13 @@ class (CharParsing m, InputParsing m) => InputCharParsing m where
    default satisfyCharInput :: IsString (ParserInput m) => (Char -> Bool) -> m (ParserInput m)
    satisfyCharInput = fmap (fromString . (:[])) . Char.satisfy
    notSatisfyChar = notFollowedBy . Char.satisfy
+
+#ifdef MIN_VERSION_monoid_subclasses
    default scanChars :: (Monad m, TextualMonoid (ParserInput m)) =>
                         state -> (state -> Char -> Maybe state) -> m (ParserInput m)
    scanChars state f = do i <- getInput
                           let (prefix, _suffix, _state) = Textual.spanMaybe' state (const $ const Nothing) f i
                           take (Factorial.length prefix)
-
-#ifdef MIN_VERSION_monoid_subclasses
    default takeCharsWhile :: (Monad m, TextualMonoid (ParserInput m)) => (Char -> Bool) -> m (ParserInput m)
    takeCharsWhile predicate = do i <- getInput
                                  take (Factorial.length $ Textual.takeWhile_ False predicate i)
@@ -173,8 +174,32 @@ instance InputParsing ReadP where
    satisfy predicate = pure <$> ReadP.satisfy (predicate . pure)
    string = ReadP.string
 
+#ifndef MIN_VERSION_monoid_subclasses
+   scan state f = ReadP.readS_to_P scanList
+      where scanList l = [(prefix' [], suffix' [])]
+               where (prefix', suffix', _, _) = List.foldl' g (id, id, state, True) l
+                     g (prefix, suffix, s1, live) x
+                        | live, Just s2 <- f s1 [x] = seq s2 $ (prefix . (x:), id, s2, True)
+                        | otherwise = (prefix, suffix . (x:), s1, False)
+   takeWhile predicate = ReadP.readS_to_P ((:[]) . List.span (predicate . (:[])))
+   takeWhile1 predicate = do x <- takeWhile predicate
+                             if List.null x then unexpected "takeWhile1" else pure x
+#endif
+
 instance InputCharParsing ReadP where
    satisfyCharInput predicate = pure <$> ReadP.satisfy predicate
+
+#ifndef MIN_VERSION_monoid_subclasses
+   scanChars state f = ReadP.readS_to_P scanList
+      where scanList l = [(prefix' [], suffix' [])]
+               where (prefix', suffix', _, _) = List.foldl' g (id, id, state, True) l
+                     g (prefix, suffix, s1, live) c
+                        | live, Just s2 <- f s1 c = seq s2 $ (prefix . (c:), id, s2, True)
+                        | otherwise = (prefix, suffix . (c:), s1, False)
+   takeCharsWhile predicate = ReadP.readS_to_P ((:[]) . List.span predicate)
+   takeCharsWhile1 predicate = do x <- takeCharsWhile predicate
+                                  if List.null x then unexpected "takeCharsWhile1" else pure x
+#endif
 
 #ifdef MIN_VERSION_attoparsec
 instance InputParsing Attoparsec.Parser where
@@ -184,6 +209,10 @@ instance InputParsing Attoparsec.Parser where
    take = Attoparsec.take
    satisfy predicate = Attoparsec.satisfyWith ByteString.singleton predicate
    string = Attoparsec.string
+   takeWhile predicate = Attoparsec.takeWhile (predicate . ByteString.singleton)
+   takeWhile1 predicate = Attoparsec.takeWhile1 (predicate . ByteString.singleton)
+   scan state f = Attoparsec.scan state f'
+      where f' s byte = f s (ByteString.singleton byte)
 
 instance InputCharParsing Attoparsec.Parser where
    satisfyCharInput predicate = ByteString.Char8.singleton <$> Attoparsec.Char8.satisfy predicate
@@ -198,6 +227,10 @@ instance InputParsing Attoparsec.Text.Parser where
    take = Attoparsec.Text.take
    satisfy predicate = Attoparsec.Text.satisfyWith Text.singleton predicate
    string = Attoparsec.Text.string
+   takeWhile predicate = Attoparsec.Text.takeWhile (predicate . Text.singleton)
+   takeWhile1 predicate = Attoparsec.Text.takeWhile1 (predicate . Text.singleton)
+   scan state f = Attoparsec.Text.scan state f'
+      where f' s c = f s (Text.singleton c)
 
 instance InputCharParsing Attoparsec.Text.Parser where
    satisfyCharInput predicate = Text.singleton <$> Attoparsec.Text.satisfy predicate

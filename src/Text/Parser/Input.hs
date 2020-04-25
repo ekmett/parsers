@@ -20,9 +20,11 @@
 
 module Text.Parser.Input where
 
-import Control.Applicative (Alternative ((<|>)))
+import Control.Applicative (Applicative ((<*>)), Alternative ((<|>)))
 import Control.Monad (void)
+import Data.Functor ((<$>))
 import qualified Data.List as List
+import Data.Monoid (Monoid, mappend, mempty)
 import Data.String (IsString (fromString))
 import Text.ParserCombinators.ReadP (ReadP)
 import qualified Text.ParserCombinators.ReadP as ReadP
@@ -179,7 +181,7 @@ instance InputParsing ReadP where
       where scanList l = [(prefix' [], suffix' [])]
                where (prefix', suffix', _, _) = List.foldl' g (id, id, state, True) l
                      g (prefix, suffix, s1, live) x
-                        | live, Just s2 <- f s1 [x] = seq s2 $ (prefix . (x:), id, s2, True)
+                        | live, Just s2 <- f s1 [x] = seq s2 (prefix . (x:), id, s2, True)
                         | otherwise = (prefix, suffix . (x:), s1, False)
    takeWhile predicate = ReadP.readS_to_P ((:[]) . List.span (predicate . (:[])))
    takeWhile1 predicate = do x <- takeWhile predicate
@@ -194,7 +196,7 @@ instance InputCharParsing ReadP where
       where scanList l = [(prefix' [], suffix' [])]
                where (prefix', suffix', _, _) = List.foldl' g (id, id, state, True) l
                      g (prefix, suffix, s1, live) c
-                        | live, Just s2 <- f s1 c = seq s2 $ (prefix . (c:), id, s2, True)
+                        | live, Just s2 <- f s1 c = seq s2 (prefix . (c:), id, s2, True)
                         | otherwise = (prefix, suffix . (c:), s1, False)
    takeCharsWhile predicate = ReadP.readS_to_P ((:[]) . List.span predicate)
    takeCharsWhile1 predicate = do x <- takeCharsWhile predicate

@@ -1,8 +1,11 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
+
+#ifdef MIN_VERSION_monoid_subclasses
+{-# LANGUAGE DefaultSignatures #-}
+#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -102,7 +105,6 @@ class LookAheadParsing m => InputParsing m where
 
    anyToken = take 1
    notSatisfy predicate = try (void $ satisfy $ not . predicate) <|> eof
-   default concatMany :: (Monoid a, Alternative m) => m a -> m a
    concatMany p = go
       where go = mappend <$> try p <*> go <|> pure mempty
 
@@ -150,8 +152,6 @@ class (CharParsing m, InputParsing m) => InputCharParsing m where
    -- that match the given predicate; an optimized version of @fmap fromString  . some . Char.satisfy@.
    takeCharsWhile1 :: (Char -> Bool) -> m (ParserInput m)
 
-   default satisfyCharInput :: IsString (ParserInput m) => (Char -> Bool) -> m (ParserInput m)
-   satisfyCharInput = fmap (fromString . (:[])) . Char.satisfy
    notSatisfyChar = notFollowedBy . Char.satisfy
 
 #ifdef MIN_VERSION_monoid_subclasses

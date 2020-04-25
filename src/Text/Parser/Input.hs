@@ -20,7 +20,7 @@
 
 module Text.Parser.Input where
 
-import Control.Applicative (Applicative ((<*>)), Alternative ((<|>)))
+import Control.Applicative (Applicative ((<*>), pure), Alternative ((<|>)))
 import Control.Monad (void)
 import Data.Functor ((<$>))
 import qualified Data.List as List

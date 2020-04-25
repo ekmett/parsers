@@ -2,7 +2,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
+
+#if __GLASGOW_HASKELL__ < 810
 {-# LANGUAGE TypeSynonymInstances #-}
+#endif
 
 #ifdef MIN_VERSION_monoid_subclasses
 {-# LANGUAGE DefaultSignatures #-}

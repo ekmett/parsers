@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
-#if defined(MIN_VERSION_monoid_subclasses) && __GLASGOW_HASKELL__ < 810
+#ifdef MIN_VERSION_monoid_subclasses
 {-# LANGUAGE DefaultSignatures #-}
 #endif
 

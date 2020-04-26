@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 
-#if __GLASGOW_HASKELL__ < 810
+#if defined (__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 802
 {-# LANGUAGE TypeSynonymInstances #-}
 #endif
 

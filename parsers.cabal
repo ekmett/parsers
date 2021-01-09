@@ -33,7 +33,6 @@ tested-with:   GHC==7.0.4
 
 extra-source-files:
   .hlint.yaml
-  .travis.yml
   CHANGELOG.markdown
   README.markdown
 

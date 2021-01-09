@@ -2,3 +2,6 @@
 
 - ignore: {name: Reduce duplication}
 - ignore: {name: Use String}
+# Needed for backwards compatibility with old versions of base, where
+# replicateM had a Monad constraint instead of an Applicative one.
+- ignore: {name: Use replicateM, within: [Text.Parser.Combinators]}

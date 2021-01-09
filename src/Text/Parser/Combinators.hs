@@ -88,13 +88,17 @@ import qualified Text.Parsec as Parsec
 #ifdef MIN_VERSION_attoparsec
 import qualified Data.Attoparsec.Types as Att
 import qualified Data.Attoparsec.Combinator as Att
-#endif 
+#endif
 
 import qualified Text.ParserCombinators.ReadP as ReadP
 
 #ifdef MIN_VERSION_binary
 import Control.Monad (when, unless)
 import qualified Data.Binary.Get as B
+#endif
+
+#if MIN_VERSION_base(4,9,0)
+import Control.Monad (replicateM)
 #endif
 
 -- | @choice ps@ tries to apply the parsers in the list @ps@ in order,
@@ -199,8 +203,12 @@ endBy p sep = many (p <* sep)
 -- equal to zero, the parser equals to @return []@. Returns a list of
 -- @n@ values returned by @p@.
 count :: Applicative m => Int -> m a -> m [a]
+#if MIN_VERSION_base(4,9,0)
+count = replicateM
+#else
 count n p | n <= 0    = pure []
           | otherwise = sequenceA (replicate n p)
+#endif
 {-# INLINE count #-}
 
 -- | @chainr p op x@ parses /zero/ or more occurrences of @p@,
@@ -446,7 +454,7 @@ instance Att.Chunk t => Parsing (Att.Parser t) where
   unexpected      = fail
   eof             = Att.endOfInput
   notFollowedBy p = optional p >>= maybe (pure ()) (unexpected . show)
-#endif 
+#endif
 
 #ifdef MIN_VERSION_binary
 instance Parsing B.Get where

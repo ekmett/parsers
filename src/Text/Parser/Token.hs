@@ -7,6 +7,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 #endif
 {-# OPTIONS_GHC -fspec-constr -fspec-constr-count=8 #-}
 -----------------------------------------------------------------------------

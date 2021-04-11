@@ -67,7 +67,8 @@ import qualified Data.IntSet as IntSet
 #if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
 #endif
-import Data.Text
+import qualified Data.Text as Text
+import Data.Text (Text)
 import qualified Text.ParserCombinators.ReadP as ReadP
 import Text.Parser.Combinators
 
@@ -230,7 +231,7 @@ class Parsing m => CharParsing m where
   -- >  divOrMod    =   text "div"
   -- >              <|> text "mod"
   text :: Text -> m Text
-  text t = t <$ string (unpack t)
+  text t = t <$ string (Text.unpack t)
   {-# INLINE text #-}
 
 instance (CharParsing m, MonadPlus m) => CharParsing (Lazy.StateT s m) where

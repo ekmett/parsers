@@ -71,8 +71,9 @@ import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
-import Data.Foldable (asum)
-import Data.List.NonEmpty
+import qualified Data.Foldable as F
+import qualified Data.List.NonEmpty as NonEmpty
+import Data.List.NonEmpty (NonEmpty(..))
 #if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
 #ifdef ORPHAN_ALTERNATIVE_READP
@@ -105,7 +106,7 @@ import Control.Monad (replicateM)
 -- until one of them succeeds. Returns the value of the succeeding
 -- parser.
 choice :: Alternative m => [m a] -> m a
-choice = asum
+choice = F.asum
 {-# INLINE choice #-}
 
 -- | @option x p@ tries to apply parser @p@. If @p@ fails without
@@ -149,7 +150,7 @@ sepBy p sep = sepBy1 p sep <|> pure []
 -- | @sepBy1 p sep@ parses /one/ or more occurrences of @p@, separated
 -- by @sep@. Returns a list of values returned by @p@.
 sepBy1 :: Alternative m => m a -> m sep -> m [a]
-sepBy1 p sep = toList <$> sepByNonEmpty p sep
+sepBy1 p sep = F.toList <$> sepByNonEmpty p sep
 {-# INLINE sepBy1 #-}
 
 -- | @sepByNonEmpty p sep@ parses /one/ or more occurrences of @p@, separated
@@ -162,7 +163,7 @@ sepByNonEmpty p sep = (:|) <$> p <*> many (sep *> p)
 -- separated and optionally ended by @sep@. Returns a list of values
 -- returned by @p@.
 sepEndBy1 :: Alternative m => m a -> m sep -> m [a]
-sepEndBy1 p sep = toList <$> sepEndByNonEmpty p sep
+sepEndBy1 p sep = F.toList <$> sepEndByNonEmpty p sep
 
 -- | @sepEndByNonEmpty p sep@ parses /one/ or more occurrences of @p@,
 -- separated and optionally ended by @sep@. Returns a non-empty list of values
@@ -188,7 +189,7 @@ endBy1 p sep = some (p <* sep)
 -- | @endByNonEmpty p sep@ parses /one/ or more occurrences of @p@, separated
 -- and ended by @sep@. Returns a non-empty list of values returned by @p@.
 endByNonEmpty :: Alternative m => m a -> m sep -> m (NonEmpty a)
-endByNonEmpty p sep = some1 (p <* sep)
+endByNonEmpty p sep = NonEmpty.some1 (p <* sep)
 {-# INLINE endByNonEmpty #-}
 
 -- | @endBy p sep@ parses /zero/ or more occurrences of @p@, separated

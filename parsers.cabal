@@ -83,8 +83,8 @@ library
     charset              >= 0.3      && < 1,
     containers           >= 0.4      && < 0.7,
     text                 >= 0.10     && < 2.1,
-    transformers         >= 0.2      && < 0.6,
-    mtl                  >= 2.0.1    && < 2.3,
+    transformers         >= 0.2      && < 0.7,
+    mtl                  >= 2.0.1    && < 2.4,
     scientific           >= 0.3      && < 0.4,
     unordered-containers >= 0.2      && < 0.3
 

@@ -41,6 +41,7 @@ module Text.Parser.Token.Style
   ) where
 
 import Control.Applicative
+import Control.Monad (void)
 import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
 #if __GLASGOW_HASKELL__ < 710
@@ -122,7 +123,7 @@ buildSomeSpaceParser simpleSpace (CommentStyle startStyle endStyle lineStyle nes
     multiLineComment = try (string startStyle) *> inComment
     inComment = if nestingStyle then inCommentMulti else inCommentSingle
     inCommentMulti
-      =   () <$ try (string endStyle)
+      =   void (try (string endStyle))
       <|> multiLineComment *> inCommentMulti
       <|> skipSome (noneOf startEnd) *> inCommentMulti
       <|> oneOf startEnd *> inCommentMulti
@@ -132,7 +133,7 @@ buildSomeSpaceParser simpleSpace (CommentStyle startStyle endStyle lineStyle nes
 
     inCommentSingle :: m ()
     inCommentSingle
-      =   () <$ try (string endStyle)
+      =   void (try (string endStyle))
       <|> skipSome (noneOf startEnd) *> inCommentSingle
       <|> oneOf startEnd *> inCommentSingle
       <?> "end of comment"

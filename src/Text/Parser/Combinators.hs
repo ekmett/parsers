@@ -6,7 +6,7 @@
 #endif
 
 #ifdef USE_DEFAULT_SIGNATURES
-{-# LANGUAGE DefaultSignatures, TypeFamilies #-}
+{-# LANGUAGE DefaultSignatures, TypeFamilies, TypeOperators #-}
 #endif
 
 #if !MIN_VERSION_base(4,6,0)

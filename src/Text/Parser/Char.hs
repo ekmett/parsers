@@ -8,7 +8,7 @@
 #endif
 
 #ifdef USE_DEFAULT_SIGNATURES
-{-# LANGUAGE DefaultSignatures, TypeFamilies #-}
+{-# LANGUAGE DefaultSignatures, TypeFamilies, TypeOperators #-}
 #endif
 -----------------------------------------------------------------------------
 -- |

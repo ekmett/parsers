@@ -1,3 +1,7 @@
+next [????.??.??]
+-----------------
+* Allow building with `transformers-0.6.*` and `mtl-2.3.*`.
+
 0.12.10 [2019.05.02]
 --------------------
 * Make the `parsec` and `attoparsec` dependencies optional with the use of

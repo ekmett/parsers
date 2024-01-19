@@ -27,6 +27,7 @@ import Text.Parsec.Prim as P (parse)
 import Text.Parser.Char
 import Text.Parser.Combinators
 import Text.ParserCombinators.ReadP (readP_to_S)
+import Text.ParserCombinators.ReadPrec (readPrec_to_S)
 
 import System.Exit
 
@@ -57,10 +58,15 @@ pReadP = TestParser "ReadP" $ \(P p) s -> case readP_to_S p s of
   [] -> Left "parseFailed"
   (a,_):_ -> Right a
 
+pReadPrec :: TestParser a
+pReadPrec = TestParser "ReadPrec" $ \(P p) s -> case readPrec_to_S p 0 s of
+  [] -> Left "parseFailed"
+  (a,_):_ -> Right a
+
 instance Arbitrary (TestParser a) where
     arbitrary = elements ps
         where
-            ps = [pReadP]
+            ps = [pReadP, pReadPrec]
 #ifdef MIN_VERSION_attoparsec
               ++ [pAtto]
 #endif
@@ -88,6 +94,8 @@ tests =
     , property prop_notFollowedBy1
     , property prop_notFollowedBy2
     , property prop_notFollowedBy3
+    , property prop_spaces
+    , property prop_spaces2
     ]
 
 -- -------------------------------------------------------------------------- --
@@ -108,6 +116,14 @@ prop_notFollowedBy2 (TestParser _ p) x y = isLeft
 prop_notFollowedBy3 :: TestParser () -> Char -> Bool
 prop_notFollowedBy3 (TestParser _ p) x = isRight
     $ p (P (notFollowedBy (char x) <|> char x *> pure ())) [x]
+
+prop_spaces :: TestParser () -> Int -> Bool
+prop_spaces (TestParser _ p) nspaces = isRight
+    $ p (P (spaces *> eof)) (replicate nspaces ' ')
+
+prop_spaces2 :: TestParser () -> Int -> Bool
+prop_spaces2 (TestParser _ p) nspaces = isRight
+    $ p (P (spaces *> char 'p' *> pure ())) (replicate nspaces ' ' ++ "p")
 
 -- -------------------------------------------------------------------------- --
 -- Utils

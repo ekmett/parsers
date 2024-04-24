@@ -104,7 +104,7 @@ import Data.Char
 import Data.Functor.Identity
 import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
-import Data.List (foldl', transpose)
+import qualified Data.List as List (foldl', transpose)
 #if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
 #endif
@@ -627,11 +627,11 @@ escapeCode = (charEsc <|> charNum <|> charAscii <|> charControl) <?> "escape cod
       maxchar = fromEnum (maxBound :: Char)
 
   bounded :: Int -> Int -> m Int
-  bounded base bnd = foldl' (\x d -> base * x + digitToInt d) 0
+  bounded base bnd = List.foldl' (\x d -> base * x + digitToInt d) 0
                  <$> bounded' (take base thedigits) (map digitToInt $ showIntAtBase base intToDigit bnd "")
     where
       thedigits :: [m Char]
-      thedigits = map char ['0'..'9'] ++ map oneOf (transpose [['A'..'F'],['a'..'f']])
+      thedigits = map char ['0'..'9'] ++ map oneOf (List.transpose [['A'..'F'],['a'..'f']])
 
       toomuch :: m a
       toomuch = unexpected "out-of-range numeric escape sequence"
@@ -688,7 +688,7 @@ natural' = highlight Number nat <?> "natural"
 
 number :: TokenParsing m => Integer -> m Char -> m Integer
 number base baseDigit =
-  foldl' (\x d -> base*x + toInteger (digitToInt d)) 0 <$> some baseDigit
+  List.foldl' (\x d -> base*x + toInteger (digitToInt d)) 0 <$> some baseDigit
 
 -- | This parser parses an integer (a whole number). This parser
 -- is like 'natural' except that it can be prefixed with
@@ -727,7 +727,7 @@ fractExponent = (\fract expo n -> (fromInteger n + fract) * expo) <$> fraction <
             <|> (\expo n -> fromInteger n * expo) <$> exponent'
  where
   fraction :: m Scientific
-  fraction = foldl' op 0 <$> (char '.' *> (some digit <?> "fraction"))
+  fraction = List.foldl' op 0 <$> (char '.' *> (some digit <?> "fraction"))
 
   op f d = f + Sci.scientific (fromIntegral (digitToInt d)) (Sci.base10Exponent f - 1)
 

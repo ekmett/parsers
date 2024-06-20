@@ -1,5 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RankNTypes #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Text.Parser.Permutation
@@ -21,28 +22,44 @@
 -----------------------------------------------------------------------------
 module Text.Parser.Permutation
     ( Permutation
+    , toPermutation
     , permute
     , (<||>), (<$$>)
     , (<|?>), (<$?>)
+    , (<|&>)
     ) where
 
 import Control.Applicative
-import qualified Data.Foldable as F (asum)
 
 infixl 1 <||>, <|?>
 infixl 2 <$$>, <$?>
+infixr 5 <|&>
 
 ----------------------------------------------------------------
 --  Building a permutation parser
 ----------------------------------------------------------------
+
+-- | @toPermutation p@ lifts a permutation @p@ into a permutation parser.
+-- The parser @p@ is not allowed to accept empty input - use the optional
+-- combinator '<|&>' instead. Returns a new permutation parser that parses
+-- @p@.
+toPermutation :: m a -> Permutation m a
+toPermutation p = Permutation $ \y -> add (y id) p
+{-# INLINE toPermutation #-}
+
+-- | The expression @x \<|&> p@ creates a permutation parser that parses
+-- @p@. If it cannot be applied, the default value @x@ will be used.
+(<|&>) :: a -> m a -> Permutation m a
+(<|&>) x p = Permutation $ \y -> addOpt (y id) x p
+{-# INLINE (<|&>) #-}
 
 -- | The expression @perm \<||> p@ adds parser @p@ to the permutation
 -- parser @perm@. The parser @p@ is not allowed to accept empty input -
 -- use the optional combinator ('<|?>') instead. Returns a
 -- new permutation parser that includes @p@.
 
-(<||>) :: Functor m => Permutation m (a -> b) -> m a -> Permutation m b
-(<||>) = add
+(<||>) :: Permutation m (a -> b) -> m a -> Permutation m b
+(<||>) perm p = perm <*> toPermutation p
 {-# INLINE (<||>) #-}
 
 -- | The expression @f \<$$> p@ creates a fresh permutation parser
@@ -59,8 +76,8 @@ infixl 2 <$$>, <$?>
 -- gets its parameters in the order in which the parsers are specified,
 -- but actual input can be in any order.
 
-(<$$>) :: Functor m => (a -> b) -> m a -> Permutation m b
-(<$$>) f p = newPermutation f <||> p
+(<$$>) :: (a -> b) -> m a -> Permutation m b
+(<$$>) f p = fmap f (toPermutation p)
 {-# INLINE (<$$>) #-}
 
 -- | The expression @perm \<|?> (x,p)@ adds parser @p@ to the
@@ -68,8 +85,8 @@ infixl 2 <$$>, <$?>
 -- not be applied, the default value @x@ will be used instead. Returns
 -- a new permutation parser that includes the optional parser @p@.
 
-(<|?>) :: Functor m => Permutation m (a -> b) -> (a, m a) -> Permutation m b
-(<|?>) perm (x,p) = addOpt perm x p
+(<|?>) :: Permutation m (a -> b) -> (a, m a) -> Permutation m b
+(<|?>) perm (x,p) = perm <*> x <|&> p
 {-# INLINE (<|?>) #-}
 
 -- | The expression @f \<$?> (x,p)@ creates a fresh permutation parser
@@ -78,8 +95,8 @@ infixl 2 <$$>, <$?>
 -- parser @p@ is optional - if it can not be applied, the default value
 -- @x@ will be used instead.
 
-(<$?>) :: Functor m => (a -> b) -> (a, m a) -> Permutation m b
-(<$?>) f (x,p) = newPermutation f <|?> (x,p)
+(<$?>) :: (a -> b) -> (a, m a) -> Permutation m b
+(<$?>) f (x,p) = fmap f (x <|&> p)
 {-# INLINE (<$?>) #-}
 
 ----------------------------------------------------------------
@@ -91,19 +108,40 @@ infixl 2 <$$>, <$?>
 -- using the base parsing monad @m@ and returns a value of
 -- type @a@ on success.
 --
--- Normally, a permutation parser is first build with special operators
--- like ('<||>') and than transformed into a normal parser
--- using 'permute'.
+-- Normally, a permutation parser is first built as an 'Applicative'
+-- with functions like 'toPermutation' and ('<|&>') and then transformed
+-- into a normal parser using 'permute'.
 
-data Permutation m a = Permutation (Maybe a) [Branch m a]
+data Permutation m a = Permutation (
+    forall r. (forall t. ((a -> r) -> t) -> Perm m t) -> Perm m r
+  )
 
-instance Functor m => Functor (Permutation m) where
-  fmap f (Permutation x xs) = Permutation (fmap f x) (fmap f <$> xs)
+instance Functor (Permutation m) where
+  fmap f (Permutation m) = Permutation $ \y -> m $ \u -> y $ \c -> u $ c . f
+  {-# INLINE fmap #-}
 
-data Branch m a = forall b. Branch (Permutation m (b -> a)) (m b)
+instance Applicative (Permutation m) where
+  pure a = Permutation $ \y -> y ($ a)
+  {-# INLINE pure #-}
 
-instance Functor m => Functor (Branch m) where
-  fmap f (Branch perm p) = Branch (fmap (f.) perm) p
+  liftA2 f (Permutation ma) (Permutation mb) = Permutation
+    $ \y -> mb $ \t -> ma $ \u -> y $ \c -> u $ \a -> t $ c . f a
+  {-# INLINE liftA2 #-}
+
+  Permutation mf <*> Permutation ma = Permutation
+    $ \y -> ma $ \t -> mf $ \u -> y $ \c -> u $ \f -> t $ c . f
+  {-# INLINE (<*>) #-}
+
+-- | A 'Perm' is a tree of permutations.
+data Perm m a = Perm !(Maybe a) [Branch m a]
+
+instance Functor (Perm m) where
+  fmap f (Perm x xs) = Perm (fmap f x) (fmap f <$> xs)
+
+data Branch m a = forall b. Branch (Perm m (b -> a)) (m b)
+
+instance Functor (Branch m) where
+  fmap f (Branch perm p) = Branch (fmap ((.) f) perm) p
 
 -- | The parser @permute perm@ parses a permutation of parser described
 -- by @perm@. For example, suppose we want to parse a permutation of:
@@ -116,31 +154,29 @@ instance Functor m => Functor (Branch m) where
 -- >        where
 -- >          tuple a b c  = (a,b,c)
 
+-- unfold the difference list, build and dismantle the tree
+permute :: Alternative m => Permutation m a -> m a
+permute (Permutation m) = permute' (m (\c -> Perm (Just (c id)) []))
+
 -- transform a permutation tree into a normal parser
-permute :: forall m a. Alternative m => Permutation m a -> m a
-permute (Permutation def xs)
-  = F.asum (map branch xs ++ e)
+permute' :: Alternative m => Perm m a -> m a
+permute' (Perm def xs)
+  = foldr ((<|>) . branch) (maybe empty pure def) xs
   where
-    e :: [m a]
-    e = maybe [] (pure . pure) def
-    branch (Branch perm p) = flip id <$> p <*> permute perm
+    branch (Branch perm p) = liftA2 (flip id) p (permute' perm)
 
 -- build permutation trees
-newPermutation :: (a -> b) -> Permutation m (a -> b)
-newPermutation f = Permutation (Just f) []
-{-# INLINE newPermutation #-}
-
-add :: Functor m => Permutation m (a -> b) -> m a -> Permutation m b
-add perm@(Permutation _mf fs) p
-  = Permutation Nothing (first:map insert fs)
+add :: Perm m (a -> b) -> m a -> Perm m b
+add perm@(Perm _mf fs) p
+  = Perm Nothing (first:map insert fs)
   where
     first = Branch perm p
     insert (Branch perm' p')
             = Branch (add (fmap flip perm') p) p'
 
-addOpt :: Functor m => Permutation m (a -> b) -> a -> m a -> Permutation m b
-addOpt perm@(Permutation mf fs) x p
-  = Permutation (fmap ($ x) mf) (first:map insert fs)
+addOpt :: Perm m (a -> b) -> a -> m a -> Perm m b
+addOpt perm@(Perm mf fs) x p
+  = Perm (fmap ($ x) mf) (first:map insert fs)
   where
     first = Branch perm p
     insert (Branch perm' p') = Branch (addOpt (fmap flip perm') x p) p'

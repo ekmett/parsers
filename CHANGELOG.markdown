@@ -1,5 +1,6 @@
 next [????.??.??]
 -----------------
+* Support building with `text-2.1.2`.
 * Drop support for pre-8.0 versions of GHC.
 
 0.12.11 [2022.05.07]

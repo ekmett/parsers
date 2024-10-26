@@ -1,9 +1,6 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Text.Parser.Token.Style
@@ -44,9 +41,6 @@ import Control.Applicative
 import Control.Monad (void)
 import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
-#if __GLASGOW_HASKELL__ < 710
-import Data.Monoid
-#endif
 import Data.Data
 import Text.Parser.Combinators
 import Text.Parser.Char
@@ -60,7 +54,7 @@ data CommentStyle = CommentStyle
   , _commentEnd     :: String -- ^ String that ends a multiline comment
   , _commentLine    :: String -- ^ String that starts a single line comment
   , _commentNesting :: Bool   -- ^ Can we nest multiline comments?
-  } deriving (Eq,Ord,Show,Read,Data,Typeable)
+  } deriving (Eq,Ord,Show,Read,Data)
 
 -- | This is a lens that can edit the string that starts a multiline comment.
 --

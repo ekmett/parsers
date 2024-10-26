@@ -1,13 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE UndecidableInstances #-}
-
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
-#define USE_DEFAULT_SIGNATURES
-#endif
-
-#ifdef USE_DEFAULT_SIGNATURES
-{-# LANGUAGE DefaultSignatures, TypeFamilies #-}
-#endif
+{-# LANGUAGE TypeFamilies #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -36,9 +29,6 @@ import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Identity
-#if __GLASGOW_HASKELL__ < 710
-import Data.Monoid
-#endif
 import qualified Text.ParserCombinators.ReadP as ReadP
 import Text.Parser.Combinators
 

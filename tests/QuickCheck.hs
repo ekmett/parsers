@@ -12,11 +12,8 @@ import Control.Applicative
 #ifdef MIN_VERSION_attoparsec
 import Data.Attoparsec.Text (parseOnly)
 #endif
-import Data.String
-
-#if MIN_VERSION_base(4,7,0)
 import Data.Either
-#endif
+import Data.String
 
 import Test.QuickCheck
 import Test.QuickCheck.Instances ()
@@ -108,14 +105,3 @@ prop_notFollowedBy2 (TestParser _ p) x y = isLeft
 prop_notFollowedBy3 :: TestParser () -> Char -> Bool
 prop_notFollowedBy3 (TestParser _ p) x = isRight
     $ p (P (notFollowedBy (char x) <|> char x *> pure ())) [x]
-
--- -------------------------------------------------------------------------- --
--- Utils
-
-#if !MIN_VERSION_base(4,7,0)
-isLeft :: Either a b -> Bool
-isLeft = either (const True) (const False)
-
-isRight :: Either a b -> Bool
-isRight = either (const False) (const True)
-#endif

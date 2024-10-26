@@ -4,11 +4,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE UndecidableInstances #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
-#endif
+{-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fspec-constr -fspec-constr-count=8 #-}
 -----------------------------------------------------------------------------
 -- |
@@ -105,9 +103,6 @@ import Data.Functor.Identity
 import qualified Data.HashSet as HashSet
 import Data.HashSet (HashSet)
 import qualified Data.List as List (foldl', transpose)
-#if __GLASGOW_HASKELL__ < 710
-import Data.Monoid
-#endif
 import Data.Scientific ( Scientific )
 import qualified Data.Scientific as Sci
 import Data.String

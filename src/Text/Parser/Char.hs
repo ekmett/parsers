@@ -1,15 +1,10 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# OPTIONS_GHC -fspec-constr -fspec-constr-count=8 #-}
-
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
-#define USE_DEFAULT_SIGNATURES
-#endif
-
-#ifdef USE_DEFAULT_SIGNATURES
-{-# LANGUAGE DefaultSignatures, TypeFamilies, TypeOperators #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Text.Parser.Char
@@ -46,9 +41,6 @@ module Text.Parser.Char
   , CharParsing(..)
   ) where
 
-#if __GLASGOW_HASKELL__ < 710
-import Control.Applicative
-#endif
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict
@@ -64,9 +56,6 @@ import Data.CharSet (CharSet(..))
 import qualified Data.CharSet as CharSet
 import Data.Foldable
 import qualified Data.IntSet as IntSet
-#if __GLASGOW_HASKELL__ < 710
-import Data.Monoid
-#endif
 import qualified Data.Text as Text
 import Data.Text (Text)
 import qualified Text.ParserCombinators.ReadP as ReadP
@@ -187,12 +176,11 @@ satisfyRange a z = satisfy (\c -> c >= a && c <= z)
 class Parsing m => CharParsing m where
   -- | Parse a single character of the input, with UTF-8 decoding
   satisfy :: (Char -> Bool) -> m Char
-#ifdef USE_DEFAULT_SIGNATURES
   default satisfy :: (MonadTrans t, CharParsing n, Monad n, m ~ t n) =>
                      (Char -> Bool) ->
                      m Char
   satisfy = lift . satisfy
-#endif
+
   -- | @char c@ parses a single character @c@. Returns the parsed
   -- character (i.e. @c@).
   --

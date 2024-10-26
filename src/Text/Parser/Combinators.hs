@@ -1,21 +1,8 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
-
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
-#define USE_DEFAULT_SIGNATURES
-#endif
-
-#ifdef USE_DEFAULT_SIGNATURES
-{-# LANGUAGE DefaultSignatures, TypeFamilies, TypeOperators #-}
-#endif
-
-#if !MIN_VERSION_base(4,6,0)
-#define ORPHAN_ALTERNATIVE_READP
-#endif
-
-#ifdef ORPHAN_ALTERNATIVE_READP
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -61,7 +48,7 @@ module Text.Parser.Combinators
   ) where
 
 import Control.Applicative
-import Control.Monad (MonadPlus(..), void)
+import Control.Monad (MonadPlus(..), replicateM, void)
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict
@@ -74,13 +61,6 @@ import Control.Monad.Trans.Identity
 import qualified Data.Foldable as F
 import qualified Data.List.NonEmpty as NonEmpty
 import Data.List.NonEmpty (NonEmpty(..))
-#if __GLASGOW_HASKELL__ < 710
-import Data.Monoid
-#ifdef ORPHAN_ALTERNATIVE_READP
-import Data.Orphans ()
-#endif
-import Data.Traversable (sequenceA)
-#endif
 
 #ifdef MIN_VERSION_parsec
 import qualified Text.Parsec as Parsec
@@ -96,10 +76,6 @@ import qualified Text.ParserCombinators.ReadP as ReadP
 #ifdef MIN_VERSION_binary
 import Control.Monad (when, unless)
 import qualified Data.Binary.Get as B
-#endif
-
-#if MIN_VERSION_base(4,9,0)
-import Control.Monad (replicateM)
 #endif
 
 -- | @choice ps@ tries to apply the parsers in the list @ps@ in order,
@@ -204,12 +180,7 @@ endBy p sep = many (p <* sep)
 -- equal to zero, the parser equals to @return []@. Returns a list of
 -- @n@ values returned by @p@.
 count :: Applicative m => Int -> m a -> m [a]
-#if MIN_VERSION_base(4,9,0)
 count = replicateM
-#else
-count n p | n <= 0    = pure []
-          | otherwise = sequenceA (replicate n p)
-#endif
 {-# INLINE count #-}
 
 -- | @chainr p op x@ parses /zero/ or more occurrences of @p@,
@@ -300,23 +271,19 @@ class Alternative m => Parsing m where
 
   -- | Used to emit an error on an unexpected token
   unexpected :: String -> m a
-#ifdef USE_DEFAULT_SIGNATURES
   default unexpected :: (MonadTrans t, Monad n, Parsing n, m ~ t n) =>
                         String -> m a
   unexpected = lift . unexpected
   {-# INLINE unexpected #-}
-#endif
 
   -- | This parser only succeeds at the end of the input. This is not a
   -- primitive parser but it is defined using 'notFollowedBy'.
   --
   -- >  eof  = notFollowedBy anyChar <?> "end of input"
   eof :: m ()
-#ifdef USE_DEFAULT_SIGNATURES
   default eof :: (MonadTrans t, Monad n, Parsing n, m ~ t n) => m ()
   eof = lift eof
   {-# INLINE eof #-}
-#endif
 
   -- | @notFollowedBy p@ only succeeds when parser @p@ fails. This parser
   -- does not consume any input. This parser can be used to implement the

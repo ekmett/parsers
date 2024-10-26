@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+0.12.12 [2024.10.26]
+--------------------
 * Support building with `text-2.1.2`.
 * Drop support for pre-8.0 versions of GHC.
 

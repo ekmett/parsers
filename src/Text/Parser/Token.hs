@@ -216,12 +216,7 @@ natural = token natural'
 -- or 'octal'. The number is parsed according
 -- to the grammar rules in the Haskell report.
 integer :: forall m. TokenParsing m => m Integer
-integer = token (token (highlight Operator sgn <*> natural')) <?> "integer"
-  where
-  sgn :: m (Integer -> Integer)
-  sgn = negate <$ char '-'
-    <|> id <$ char '+'
-    <|> pure id
+integer = token (sign <*> natural') <?> "integer"
 {-# INLINE integer #-}
 
 -- | This token parser parses a floating point value. Returns the value
@@ -701,7 +696,7 @@ integer' :: TokenParsing m => m Integer
 integer' = int <?> "integer"
 {-# INLINE integer' #-}
 
-sign :: TokenParsing m => m (Integer -> Integer)
+sign :: (TokenParsing m, Num a) => m (a -> a)
 sign = highlight Operator
      $ negate <$ char '-'
    <|> id <$ char '+'
